@@ -1,0 +1,26 @@
+{
+  "name": "webdav",
+  "version": "1.0.0",
+  "description": "WebDAV文件共享服务访问技能",
+  "main": "main.handle_webdav_command",
+  "author": "OpenClaw",
+  "license": "MIT",
+  "dependencies": {
+    "requests": ">=2.20.0",
+    "xml.etree.ElementTree": ">=1.0"
+  },
+  "keywords": ["webdav", "nas", "文件共享", "上传", "下载"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openclaw/skills-webdav"
+  },
+  "bugs": {
+    "url": "https://github.com/openclaw/skills-webdav/issues"
+  },
+  "homepage": "https://fnos.ishareread.com:5006/openclaw_sharedoc",
+  "config": {
+    "server": "https://fnos.ishareread.com:5006/openclaw_sharedoc",
+    "username": "xiejava",
+    "password": "xiejava@Happy99"
+  }
+}
