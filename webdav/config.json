@@ -12,15 +12,15 @@
   "keywords": ["webdav", "nas", "文件共享", "上传", "下载"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/openclaw/skills-webdav"
+    "url": "https://github.com/xiejava1018/myopenclaw-skills.git"
   },
   "bugs": {
-    "url": "https://github.com/openclaw/skills-webdav/issues"
+    "url": "https://github.com/xiejava1018/myopenclaw-skills/issues"
   },
-  "homepage": "https://fnos.ishareread.com:5006/openclaw_sharedoc",
+  "homepage": "https://github.com/xiejava1018/myopenclaw-skills",
   "config": {
-    "server": "https://fnos.ishareread.com:5006/openclaw_sharedoc",
-    "username": "xiejava",
-    "password": "xiejava@Happy99"
+    "server": "https://example.com/webdav",
+    "username": "your_username",
+    "password": "your_password"
   }
 }
