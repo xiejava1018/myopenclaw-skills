@@ -13,11 +13,23 @@ import re
 import requests
 import xml.etree.ElementTree as ET
 from urllib.parse import urljoin
+import json
 
-# WebDAV服务器配置
-WEBDV_SERVER = "https://fnos.ishareread.com:5006/openclaw_sharedoc"
-WEBDV_USER = "xiejava"
-WEBDV_PASS = "xiejava@Happy99"
+# 从配置文件读取WebDAV服务器配置
+def load_config():
+    """加载配置文件"""
+    config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            return config.get("config", {})
+    except Exception as e:
+        return {}
+
+config = load_config()
+WEBDV_SERVER = config.get("server", "https://example.com/webdav")
+WEBDV_USER = config.get("username", "your_username")
+WEBDV_PASS = config.get("password", "your_password")
 
 class WebDAVClient:
     """WebDAV客户端类"""
