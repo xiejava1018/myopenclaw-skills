@@ -68,11 +68,70 @@ curl "https://api.duckduckgo.com/?q=Python&format=json&no_html=1"
 - `no_html`: 移除 HTML 标签
 - `kl`: 语言/地区（如 `kl=cn-zh` 用于中文）
 
+## 代理配置（中国大陆用户必看）
+
+⚠️ **如果你在中国大陆，需要配置代理才能访问 DuckDuckGo API。**
+
+### 方法1：配置 OpenClaw Gateway 代理（推荐）
+
+在 `~/.openclaw/openclaw.json` 中添加：
+
+```json
+{
+  "env": {
+    "vars": {
+      "HTTP_PROXY": "http://127.0.0.1:10809",
+      "HTTPS_PROXY": "http://127.0.0.1:10809",
+      "NO_PROXY": "localhost,127.0.0.1,*.feishu.cn,*.larksuite.com,*.bytedance.com"
+    }
+  }
+}
+```
+
+重启 Gateway：
+```bash
+openclaw gateway restart
+```
+
+### 方法2：系统环境变量
+
+在 `~/.bashrc` 或 `~/.zshrc` 中添加：
+
+```bash
+export HTTP_PROXY="http://127.0.0.1:10809"
+export HTTPS_PROXY="http://127.0.0.1:10809"
+```
+
+### 方法3：修改 ddg.sh 脚本
+
+在 curl 命令中添加 `-x` 参数：
+
+```bash
+curl -x http://127.0.0.1:10809 "https://api.duckduckgo.com/..."
+```
+
+### 常见代理端口
+
+- **10809**: HTTP 代理（v2ray、clash 默认）
+- **10808**: SOCKS5 代理（v2ray 默认）
+- **7890**: Clash 默认 HTTP 代理
+
+### 检查代理状态
+
+```bash
+# 检查环境变量
+env | grep -i proxy
+
+# 测试代理连接
+curl -x http://127.0.0.1:10809 https://duckduckgo.com
+```
+
 ## 局限性
 
 1. **即时答案 API**：最适合查询事实、定义、知名主题
 2. **全面网页搜索**：对于一般网页搜索，建议配合 `web_fetch` 工具
 3. **速率限制**：频繁请求可能被限流
+4. **中国大陆访问**：需要配置代理
 
 ## 替代方案
 
