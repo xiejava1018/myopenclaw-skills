@@ -102,6 +102,8 @@ curl -s "https://api.duckduckgo.com/?q=Python+programming&format=json" | jq '.Re
 
 ## Proxy Configuration (中国大陆用户必看)
 
+**2026-02-24 更新**：脚本已内置代理支持，默认使用 `http://127.0.0.1:10809`。
+
 如果在中国大陆使用，需要配置代理才能访问 DuckDuckGo API。
 
 ### 方法1：配置 OpenClaw Gateway 代理（推荐）
@@ -133,11 +135,11 @@ export HTTP_PROXY="http://127.0.0.1:10809"
 export HTTPS_PROXY="http://127.0.0.1:10809"
 ```
 
-### 方法3：curl 直接指定代理
+### 方法3：脚本内置代理（默认已启用）
 
-修改 `ddg.sh` 脚本中的 curl 命令：
+编辑 `ddg.sh` 脚本，修改 `PROXY` 变量：
 ```bash
-curl -x http://127.0.0.1:10809 "https://api.duckduckgo.com/..."
+PROXY="http://127.0.0.1:YOUR_PROXY_PORT"
 ```
 
 ### 代理要求
@@ -145,12 +147,30 @@ curl -x http://127.0.0.1:10809 "https://api.duckduckgo.com/..."
 - 端口 10809 是常见的 HTTP 代理端口
 - 端口 10808 是常见的 SOCKS5 代理端口
 
+## Troubleshooting (故障排除)
+
+### 搜索无结果
+
+**原因**：Instant Answer API 对教程类关键词支持有限
+
+**解决方案**：
+- 使用**英文关键词**：`Python tutorial` > `Python 教程`
+- 使用**知名实体**：如 `Python`、`Linux`、`Docker`
+
+### 连接超时
+
+**检查代理**：
+```bash
+curl -x http://127.0.0.1:10809 https://duckduckgo.com
+```
+
 ## Limitations
 
 - Instant Answer API works best for facts, definitions, and popular topics
 - For comprehensive web search, consider using Searxng or installing ddgr CLI tool
 - Some searches may be rate-limited
 - **中国大陆需要配置代理才能访问 DuckDuckGo API**
+- **教程类关键词可能无即时答案，建议使用英文关键词**
 
 ## Tips
 
