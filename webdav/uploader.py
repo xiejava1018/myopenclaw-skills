@@ -11,10 +11,29 @@ import os
 class WebDAVUploader:
     """使用curl命令实现的WebDAV文件上传器"""
     
-    def __init__(self, url="https://your-server.com/webdav", 
-                 username="xiejava", password="YOUR_PASSWORD_HERE"):
+    def __init__(self, url=None, username=None, password=None):
         """初始化上传器"""
-        self.url = url.rstrip("/")
+        # 从环境变量或配置文件读取
+        import json
+        
+        if not all([url, username, password]):
+            # 优先从环境变量读取
+            url = url or os.environ.get('WEBDAV_SERVER')
+            username = username or os.environ.get('WEBDAV_USERNAME')
+            password = password or os.environ.get('WEBDAV_PASSWORD')
+            
+            # 如果环境变量不存在，从config.json读取
+            if not all([url, username, password]):
+                config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+                if os.path.exists(config_path):
+                    with open(config_path, 'r', encoding='utf-8') as f:
+                        config_data = json.load(f)
+                        webdav_config = config_data.get('config', {})
+                        url = url or webdav_config.get('server')
+                        username = username or webdav_config.get('username')
+                        password = password or webdav_config.get('password')
+        
+        self.url = url.rstrip("/") if url else ""
         self.username = username
         self.password = password
         
