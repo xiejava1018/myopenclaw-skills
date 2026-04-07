@@ -31,6 +31,35 @@ description: |
    - 新发现的IP → "新发现"
    - 扫描到的IP → "在线"
    - 表格有但未扫描到 → "离线"
+6. **交互式配置** - 首次运行自动引导完成配置
+
+## 使用方法
+
+### 首次运行（自动配置）
+
+```bash
+python3 network_scan_unified.py
+```
+
+脚本会自动检测配置是否完整，不完整则进入交互式配置向导：
+- 提供默认值（按回车使用）
+- 实时验证配置格式
+- 自动保存到 `.env` 文件
+
+### 重新配置
+
+如果需要重新配置，删除 `.env` 文件后重新运行即可：
+```bash
+rm .env
+python3 network_scan_unified.py
+```
+
+### 手动配置（可选）
+
+```bash
+cp .env.example .env
+# 编辑 .env 填入你的配置
+```
 
 ## 数据源配置
 
@@ -40,9 +69,9 @@ description: |
 - **字段**: asset_ip, asset_description, asset_status, status_updated_at
 
 ### 飞书（展示/备份）
-- **URL**: https://my.feishu.cn/base/YBfnb26B9ap5pNszOSqcQrsrnSg?table=tbl7uZwUQBnpqWbm
-- **App Token**: YBfnb26B9ap5pNszOSqcQrsrnSg
-- **Table ID**: tbl7uZwUQBnpqWbm
+- **URL**: https://my.feishu.cn/base/YourAppToken?table=YourTabelID
+- **App Token**: YourAppToken
+- **Table ID**: YourTabelID
 - **字段**:
   - 资产IP (Text, Primary)
   - 资产说明 (Text)
@@ -137,6 +166,12 @@ timestamp = int(time.time())
 - `network_scan.py` - 旧版（仅飞书）
 
 ## 更新日志
+
+**2026-04-07**:
+- ✅ **添加交互式配置** - 首次运行自动进入配置向导
+- ✅ **简化使用流程** - 无需手动复制和编辑 .env 文件
+- ✅ **配置验证** - 实时验证输入格式并提供警告
+- ✅ **用户体验优化** - 提供详细的提示信息和默认值
 
 **2026-03-04**:
 - ✅ **修复同步流程** - 添加先更新Supabase再更新飞书的逻辑

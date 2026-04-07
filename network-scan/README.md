@@ -9,25 +9,78 @@
 - 📋 同步到飞书多维表格（展示/备份）
 - 🔄 状态自动更新（在线/离线/新发现）
 - 🛡️ 去重逻辑（避免重复创建）
+- 🧭 首次运行自动交互式配置
+- ⚡ 快速扫描模式（无需配置，仅显示在线主机）
 
 ## 快速开始
 
-### 1. 安装依赖
-
-```bash
-pip install requests
-# 需要 nmap: apt install nmap
-```
-
-### 2. 配置
+### 方式一：快速扫描（无需配置）
 
 ```bash
 cd skills/network-scan
-cp .env.example .env
-# 编辑 .env 填入你的配置
+python3 network_scan_unified.py --quick
 ```
 
-### 3. 配置 Supabase
+或直接运行，首次会提示选择模式：
+
+```bash
+python3 network_scan_unified.py
+```
+
+### 方式二：完整同步（扫描 + 数据同步）
+
+首次运行会自动进入交互式配置：
+
+```bash
+cd skills/network-scan
+python3 network_scan_unified.py
+# 选择 "完整同步" 模式
+```
+
+## 使用方法
+
+### 命令行选项
+
+```bash
+python3 network_scan_unified.py [选项]
+```
+
+| 选项 | 说明 |
+|------|------|
+| `-h, --help` | 显示帮助信息 |
+| `--quick` | 快速扫描模式（不同步到数据源） |
+| `--scan-only` | 仅扫描模式（同 --quick） |
+
+### 示例
+
+**快速扫描（不配置数据源）：**
+```bash
+python3 network_scan_unified.py --quick
+```
+
+**交互式选择模式：**
+```bash
+python3 network_scan_unified.py
+# 首次运行会提示选择：
+# 1) 快速扫描 - 仅显示在线主机
+# 2) 完整同步 - 扫描后同步到 Supabase 和飞书
+```
+
+**查看帮助：**
+```bash
+python3 network_scan_unified.py --help
+```
+
+## 安装依赖
+
+```bash
+pip3 install requests --break-system-packages
+# 需要 nmap（可选）: brew install nmap 或 apt install nmap
+```
+
+## 配置说明
+
+### Supabase（主数据源）
 
 1. 创建 Supabase 项目
 2. 创建 `soc_assets` 表：
@@ -38,7 +91,7 @@ cp .env.example .env
    - `status_updated_at` (timestamp)
 3. 获取 API URL 和 anon public key
 
-### 4. 配置飞书多维表格
+### 飞书多维表格（展示/备份）
 
 1. 在飞书开放平台创建应用
 2. 开通多维表格权限
@@ -47,12 +100,6 @@ cp .env.example .env
    - `资产说明` (文本)
    - `资产状态` (文本：在线/离线/新发现/已删除)
    - `状态更新时间` (日期时间)
-
-### 5. 运行
-
-```bash
-python3 network_scan_unified.py
-```
 
 ## 环境变量
 
@@ -69,7 +116,7 @@ python3 network_scan_unified.py
 ## 数据流向
 
 ```
-nmap 扫描 → Supabase（主数据源）→ 飞书（展示/备份）
+nmap/ping 扫描 → Supabase（主数据源）→ 飞书（展示/备份）
 ```
 
 ## 状态说明
@@ -78,3 +125,12 @@ nmap 扫描 → Supabase（主数据源）→ 飞书（展示/备份）
 - ✅ 在线：本次扫描仍然在线
 - ❌ 离线：之前在线，本次未扫描到
 - 🗑️ 已删除：手动标记删除
+
+## 重新配置
+
+如果需要重新配置，删除 `.env` 文件后重新运行即可：
+
+```bash
+rm .env
+python3 network_scan_unified.py
+```
