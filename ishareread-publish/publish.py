@@ -510,11 +510,36 @@ def get_published_url(config, title):
 # ===== Git 操作 =====
 
 
+def git_pull_latest(config):
+    """发布前先拉取最新代码，避免冲突"""
+    site_dir = config["HUGO_SITE_DIR"]
+    try:
+        result = subprocess.run(
+            ["git", "pull", "origin", "main"],
+            cwd=site_dir,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            print("  ✅ Git pull 成功，代码已是最新")
+            return True
+        else:
+            print(f"  ⚠️  Git pull 失败: {result.stderr}")
+            return False
+    except Exception as e:
+        print(f"  ⚠️  Git pull 异常: {e}")
+        return False
+
+
 def git_commit_and_push(config, title):
     """提交文章到 Git 并推送到 GitHub"""
     site_dir = config["HUGO_SITE_DIR"]
 
     try:
+        # 发布前先拉取最新代码
+        print("  🔄 拉取最新代码...")
+        git_pull_latest(config)
+        
         # git add
         subprocess.run(["git", "add", "content/", "public/", "static/"], cwd=site_dir, capture_output=True)
 
@@ -703,17 +728,23 @@ def publish_article(config, article, hugo_only=False, wechat_only=False):
 
     publish_url = article.get("publish_url", "")
 
+    # Step 0: 发布前先拉取最新代码（避免多代理发布冲突）
+    if not wechat_only:
+        print("\n[Step 0/6] 拉取 GitHub 最新代码...")
+        if not git_pull_latest(config):
+            print("  ⚠️  拉取失败，继续发布可能产生冲突")
+
     # Step 1: 发布到 Hugo 网站
     if not wechat_only:
-        print("\n[Step 1/5] 创建 Hugo 文章...")
+        print("\n[Step 1/6] 创建 Hugo 文章...")
         article_dir = create_hugo_article(config, article)
 
-        print("\n[Step 2/5] 构建 Hugo 站点...")
+        print("\n[Step 2/6] 构建 Hugo 站点...")
         if not build_hugo(config):
             return False
 
         # 获取发布 URL
-        print("\n[Step 3/5] 提交到 Git 并推送...")
+        print("\n[Step 3/6] 提交到 Git 并推送...")
         publish_url = get_published_url(config, title)
         if not publish_url:
             print("  ⚠️  无法获取发布 URL，使用估算 URL")
