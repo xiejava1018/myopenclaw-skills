@@ -7,7 +7,7 @@ description: |
 
 # 爱分享读书 — 一键发布工具
 
-从飞书多维表格获取未发布文章 → 发布到 Hugo 网站 → 推送 GitHub Pages → 回写飞书发布地址 → 发布到微信公众号。
+从飞书多维表格获取未发布文章 → 发布到 Hugo 网站 → 推送 GitHub Pages → 回写飞书发布地址 → **同步更新选题库状态** → 发布到微信公众号。
 
 ## 功能特点
 
@@ -77,8 +77,10 @@ python3 publish.py --wechat-only --title "文章标题"
 |---------|------|------|
 | `FEISHU_APP_ID` | 是 | 飞书应用 App ID |
 | `FEISHU_APP_SECRET` | 是 | 飞书应用 App Secret |
-| `FEISHU_APP_TOKEN` | 是 | 飞书多维表格 App Token |
-| `FEISHU_TABLE_ID` | 是 | 飞书多维表格 Table ID |
+| `FEISHU_APP_TOKEN` | 是 | 文案库多维表格 App Token |
+| `FEISHU_TABLE_ID` | 是 | 文案库多维表格 Table ID |
+| `FEISHU_TOPIC_APP_TOKEN` | 是 | 选题库多维表格 App Token |
+| `FEISHU_TOPIC_TABLE_ID` | 是 | 选题库多维表格 Table ID |
 | `COZE_API_TOKEN` | 是 | Coze API Token |
 | `COZE_WORKFLOW_ID` | 是 | Coze 工作流 ID |
 | `HUGO_SITE_DIR` | 是 | Hugo 站点目录绝对路径 |
@@ -95,7 +97,9 @@ Hugo 构建 (hugo --minify)
     ↓
 Git commit + push → 触发 GitHub Pages 部署
     ↓
-回写飞书表格「文章发布地址」
+回写文案库「文章发布地址」
+    ↓
+同步更新选题库 → 状态改为"已发布" + 填入发布地址
     ↓
 Coze 工作流 → 发布微信公众号（HTML 内容）
 ```

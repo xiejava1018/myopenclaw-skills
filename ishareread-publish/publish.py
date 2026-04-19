@@ -34,6 +34,8 @@ REQUIRED_KEYS = [
     "FEISHU_APP_SECRET",
     "FEISHU_APP_TOKEN",
     "FEISHU_TABLE_ID",
+    "FEISHU_TOPIC_APP_TOKEN",
+    "FEISHU_TOPIC_TABLE_ID",
     "COZE_API_TOKEN",
     "COZE_WORKFLOW_ID",
     "HUGO_SITE_DIR",
@@ -95,6 +97,8 @@ def load_config():
     # 设置默认值
     config.setdefault("FEISHU_APP_TOKEN", "XsBnb6AOTafA8usGoIGc2faunUh")
     config.setdefault("FEISHU_TABLE_ID", "tblwHGCK9VwzORYR")
+    config.setdefault("FEISHU_TOPIC_APP_TOKEN", "YjN6bWopMaYixSs1ArncqVBLn1c")
+    config.setdefault("FEISHU_TOPIC_TABLE_ID", "tblspru4cgIMd5M3")
     config.setdefault("COZE_WORKFLOW_ID", "7475172960854458405")
     config.setdefault("HUGO_SITE_DIR", "/Users/xiejava/xiejavablog/myhugo/ishareread")
     config.setdefault("SITE_BASE_URL", "https://www.ishareread.com")
@@ -279,6 +283,65 @@ def delete_feishu_records(token, config, record_ids):
     path = f"/bitable/v1/apps/{config['FEISHU_APP_TOKEN']}/tables/{config['FEISHU_TABLE_ID']}/records/batch_delete"
     feishu_request(path, token, method="POST", data={"records": record_ids})
     return True
+
+
+def sync_topic_status(token, config, article_title, published_url):
+    """同步选题库状态：根据文章标题模糊匹配，更新发布状态为已发布并填入发布地址"""
+    app_token = config["FEISHU_TOPIC_APP_TOKEN"]
+    table_id = config["FEISHU_TOPIC_TABLE_ID"]
+    
+    if not app_token or not table_id:
+        print("  ⚠️  选题库配置未填写，跳过同步")
+        return True
+    
+    try:
+        # 获取选题库所有记录
+        path = f"/bitable/v1/apps/{app_token}/tables/{table_id}/records?page_size=100"
+        data = feishu_request(path, token)
+        records = data.get("items", [])
+        
+        if not records:
+            print("  ⚠️  选题库为空，跳过同步")
+            return True
+        
+        # 模糊匹配标题（选题标题包含文章标题 或 文章标题包含选题标题）
+        matched_record_id = None
+        article_title_lower = article_title.lower()
+        
+        for record in records:
+            fields = record.get("fields", {})
+            # 选题标题字段明确为 "选题标题"，飞书返回格式是数组
+            topic_title = ""
+            if "选题标题" in fields:
+                title_arr = fields["选题标题"]
+                if isinstance(title_arr, list) and len(title_arr) > 0:
+                    topic_title = title_arr[0].get("text", "").lower()
+                elif isinstance(title_arr, str):
+                    topic_title = title_arr.lower()
+            
+            if topic_title and (article_title_lower in topic_title or topic_title in article_title_lower):
+                matched_record_id = record["record_id"]
+                break
+        
+        if not matched_record_id:
+            print("  ⚠️  选题库未找到匹配的选题，跳过同步")
+            return True
+        
+        # 更新状态为已发布，填入发布地址（字段名：状态、文章发布地址）
+        update_fields = {
+            "状态": "已发布",
+            "文章发布地址": published_url
+        }
+        path = f"/bitable/v1/apps/{app_token}/tables/{table_id}/records/batch_update"
+        payload = {"records": [{"record_id": matched_record_id, "fields": update_fields}]}
+        feishu_request(path, token, method="POST", data=payload)
+        
+        print("  ✅ 选题库状态已同步为「已发布」")
+        return True
+        
+    except Exception as e:
+        print(f"  ⚠️  选题库同步失败: {e}")
+        return True
 
 
 # ===== Hugo 文章操作 =====
@@ -661,21 +724,29 @@ def publish_article(config, article, hugo_only=False, wechat_only=False):
             return False
 
         # Step 4: 回写飞书表格
-        print("\n[Step 4/5] 回写飞书表格...")
+        print("\n[Step 4/6] 回写文案库...")
         try:
             token = get_feishu_token()
             update_feishu_record(token, config, article["record_id"], {"文章发布地址": publish_url})
             print(f"  ✅ 发布地址: {publish_url}")
         except Exception as e:
-            print(f"  ⚠️  飞书回写失败: {e}")
+            print(f"  ⚠️  文案库回写失败: {e}")
+
+        # Step 4.5: 同步选题库状态
+        print("\n[Step 5/6] 同步选题库状态...")
+        try:
+            token = get_feishu_token()
+            sync_topic_status(token, config, article["title"], publish_url)
+        except Exception as e:
+            print(f"  ⚠️  选题库同步失败: {e}")
 
         if hugo_only:
             print("\n✅ Hugo 网站发布完成（跳过微信公众号发布）")
             return True
 
-    # Step 5: 发布微信公众号
+    # Step 6: 发布微信公众号
     if not hugo_only:
-        print("\n[Step 5/5] 发布到微信公众号...")
+        print("\n[Step 6/6] 发布到微信公众号...")
         try:
             publish_to_wechat(config, article, publish_url)
         except Exception as e:
