@@ -408,7 +408,7 @@ def get_existing_tags(site_dir):
                             continue
                         if found_tags and in_front_matter and line.strip().startswith("-"):
                             tag = line.strip().lstrip("- ").strip()
-                            if tag:
+                            if tag and len(tag) <= 6:
                                 existing_tags.add(tag)
             except Exception:
                 continue
@@ -418,47 +418,124 @@ def get_existing_tags(site_dir):
 
 
 def extract_tags_from_content(title, content, category, site_dir):
-    """从文章标题、内容、分类中自动提取关键词作为标签，优先匹配已有标签，最多4个"""
+    """从文章标题、内容、分类中自动提取关键词作为标签，优先匹配已有标签，最多4个，标签长度≤6字"""
     existing_tags = get_existing_tags(site_dir)
     candidate_tags = []
+    all_text = (title + " " + content) if content else title
     
-    # 优先级 1: 分类（肯定第一个）
+    # ========== 优先级 1: 分类（第一个，长度必须≤6）
     if category and category.strip():
         cat = category.strip()
-        candidate_tags.append(cat)
+        if len(cat) <= 6:
+            if cat not in candidate_tags:
+                candidate_tags.append(cat)
+        else:
+            # 分类太长，切分找第一个符合要求的词
+            words = re.findall(r'[\u4e00-\u9fff]{2,6}', cat)
+            found = False
+            for word in words:
+                if word not in candidate_tags and len(word) <= 6:
+                    candidate_tags.append(word)
+                    found = True
+                    break
+            # 没找到合适的就截前6个字
+            if not found and len(cat) >= 2:
+                candidate_tags.append(cat[:6])
     
-    # 优先级 2: 书名（从《》中提取），先匹配已有标签
-    book_matches = re.findall(r'[《]([^》]+)[》]', content if content else title)
-    for book in book_matches:
-        book = book.strip()
-        if len(book) >= 2:
-            # 如果书名在已有标签中，优先放前面
-            if book in existing_tags and book not in candidate_tags:
-                candidate_tags.insert(1 if len(candidate_tags) == 1 else len(candidate_tags), book)
-            elif book not in candidate_tags:
-                candidate_tags.append(book)
+    # ========== 优先级 2: 已有标签，在全文中出现过的优先（复用已有，避免碎片化）
+    # 直接检查每个已有标签是否在全文出现，按词长排序（长词更精确优先）
+    if len(candidate_tags) < 4:
+        matched_existing = []
+        for tag in existing_tags:
+            if tag in all_text and tag not in candidate_tags and not (tag.startswith('第') and tag.endswith('期')):
+                matched_existing.append((-len(tag), tag))  # 负长度，长词优先排序
+        # 排序：长词优先
+        matched_existing.sort()
+        for _, tag in matched_existing:
+            if len(candidate_tags) >= 4:
+                break
+            candidate_tags.append(tag)
     
-    # 优先级 3: 从标题提取分词，优先匹配已有标签
-    title_words = re.findall(r'[\u4e00-\u9fffa-zA-Z0-9]+', title)
-    # 先加已有匹配的
-    for word in title_words:
-        word = word.strip()
-        if len(word) >= 3 and word in existing_tags and word not in candidate_tags:
+    # ========== 优先级 3: 已有标签还没填满，再从《》提取书名核心词补充空位
+    if len(candidate_tags) >= 4:
+        # 已经够了，跳过
+        pass
+    else:
+        book_matches = re.findall(r'[《]([^》]+)[》]', all_text)
+        for full_book_name in book_matches:
+            if len(candidate_tags) >= 4:
+                break
+            full_book_name = full_book_name.strip()
+            # 整本书名符合长度要求
+            if len(full_book_name) <= 6 and len(full_book_name) >= 2 and full_book_name not in candidate_tags:
+                candidate_tags.append(full_book_name)
+                continue
+            # 书名太长，直接取最后 2-4 个汉字（书名核心一般在最后，比如《XXX的YYYY》核心就是 YYYY）
+            n = min(4, len(full_book_name))
+            short_name = full_book_name[-n:]
+            # 保证长度至少 2
+            if len(short_name) >= 2 and short_name not in candidate_tags:
+                candidate_tags.append(short_name)
+    
+    # ========== 优先级 4: 还不够，从正文提取高频词补充
+    if len(candidate_tags) < 4:
+        word_count = {}
+        # 停用词
+        stop_words = {
+            "这个", "那个", "就是", "还有", "可以", "我们", "他们", "你们",
+            "这样", "那样", "但是", "因为", "所以", "如果", "已经", "认为",
+            "今天", "明天", "一点", "一些", "非常", "怎么", "什么", "为什么",
+            "如何", "第", "期", "阅读", "成长", "文章", "这本书", "推荐", 
+            "国际", "政治", "国际政治", "阅读指南"
+        }
+        # 按标点分句，提取所有有意义的 2-6 字词
+        # 先把全文按非中文字符分割，得到纯中文短语
+        phrases = re.split(r'[^\u4e00-\u9fff]+', all_text)
+        for phrase in phrases:
+            # 对每个中文短语，提取所有 2-6 字的词（从开头和结尾）
+            n = len(phrase)
+            if n < 2:
+                continue
+            # 取开头和结尾的短词，更可能是关键词
+            if n >= 2 and n <= 6:
+                word = phrase
+                if (word not in candidate_tags
+                    and word not in existing_tags
+                    and not any(c.isdigit() for c in word)
+                    and not (word.startswith('第') and word.endswith('期'))
+                    and word not in stop_words):
+                    word_count[word] = word_count.get(word, 0) + 1
+            else:
+                # 短语太长，取前 4 字和后 4 字
+                start_word = phrase[:4]
+                if (start_word not in candidate_tags
+                    and start_word not in existing_tags
+                    and not any(c.isdigit() for c in start_word)
+                    and not (start_word.startswith('第') and start_word.endswith('期'))
+                    and start_word not in stop_words):
+                    word_count[start_word] = word_count.get(start_word, 0) + 1
+                end_word = phrase[-4:]
+                if (end_word not in candidate_tags
+                    and end_word not in existing_tags
+                    and not any(c.isdigit() for c in end_word)
+                    and not (end_word.startswith('第') and end_word.endswith('期'))
+                    and end_word not in stop_words):
+                    word_count[end_word] = word_count.get(end_word, 0) + 1
+        # 按词频降序排列
+        sorted_words = sorted(word_count.keys(), key=lambda w: word_count[w], reverse=True)
+        for word in sorted_words:
+            if len(candidate_tags) >= 4:
+                break
             candidate_tags.append(word)
-    # 再加新的关键词
-    for word in title_words:
-        word = word.strip()
-        if len(word) >= 3 and word not in candidate_tags:
-            candidate_tags.append(word)
     
-    # 如果不够，兜底加默认
+    # ========== 兜底：不够就加默认
     if len(candidate_tags) < 2:
         if "阅读" not in candidate_tags:
             candidate_tags.append("阅读")
         if len(candidate_tags) < 2 and "成长" not in candidate_tags:
             candidate_tags.append("成长")
     
-    # 限制最多 4 个标签
+    # 最终：严格控制最多 4 个标签
     tags = candidate_tags[:4]
     return tags
 
