@@ -569,6 +569,24 @@ def create_hugo_article(config, article):
         if isinstance(cat_arr, list) and len(cat_arr) > 0:
             category = cat_arr[0].get("text", "阅读")
     
+    # 读取文章标签：优先使用手动填写的「文章标签」（逗号分隔）
+    tags = []
+    if "tags" in article:
+        tags = article["tags"]
+    elif "文章标签" in article:
+        tag_arr = article["文章标签"]
+        if isinstance(tag_arr, list) and len(tag_arr) > 0:
+            tag_text = tag_arr[0].get("text", "")
+            if tag_text:
+                # 按逗号、顿号、空格分隔
+                tags = [t.strip() for t in re.split(r'[,，、\s]+', tag_text) if t.strip()]
+                # 过滤：每个标签≤6字，最多4个
+                tags = [t for t in tags if len(t) <= 6][:4]
+    
+    # 如果没有手动填写标签，再自动提取
+    if not tags:
+        tags = extract_tags_from_content(title, markdown_content, category, site_dir)
+    
     markdown_content = ""
     if "content_md" in article:
         markdown_content = article["content_md"]
@@ -584,9 +602,6 @@ def create_hugo_article(config, article):
         img_arr = article["文章配图"]
         if isinstance(img_arr, list) and len(img_arr) > 0:
             image_url = img_arr[0].get("text", "")
-    
-    # 自动提取标签：标题 + 书名 + 分类 + 默认兜底，优先匹配已有标签，最多4个
-    tags = extract_tags_from_content(title, markdown_content, category, site_dir)
     
     date_str = article.get("date", datetime.now(CST).strftime("%Y-%m-%d"))
 
