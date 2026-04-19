@@ -376,34 +376,90 @@ def _auto_increment_time(site_dir, date_str):
     return f"{date_str}T{new_hour:02d}:00:00+08:00"
 
 
-def extract_tags_from_content(title, content, category):
-    """从文章标题、内容、分类中自动提取关键词作为标签"""
-    # 先从标题提取关键词（标题里的都是核心）
-    title_words = re.findall(r'[\u4e00-\u9fffa-zA-Z0-9]+', title)
-    keywords = set()
+def get_existing_tags(site_dir):
+    """读取 Hugo 站点已有的标签，返回集合"""
+    try:
+        # 查找所有已生成文章的 front matter 提取标签
+        content_dir = Path(site_dir) / "content" / "post"
+        if not content_dir.exists():
+            return set()
+        
+        existing_tags = set()
+        # 遍历所有文章目录，提取标签
+        for post_dir in content_dir.iterdir():
+            if not post_dir.is_dir():
+                continue
+            index_md = post_dir / "index.md"
+            if not index_md.exists():
+                continue
+            try:
+                in_front_matter = False
+                found_tags = False
+                with open(index_md, encoding="utf-8") as f:
+                    for line in f:
+                        if line.strip() == "---":
+                            if not in_front_matter:
+                                in_front_matter = True
+                                continue
+                            else:
+                                break
+                        if in_front_matter and line.strip().startswith("tags:"):
+                            found_tags = True
+                            continue
+                        if found_tags and in_front_matter and line.strip().startswith("-"):
+                            tag = line.strip().lstrip("- ").strip()
+                            if tag:
+                                existing_tags.add(tag)
+            except Exception:
+                continue
+        return existing_tags
+    except Exception:
+        return set()
+
+
+def extract_tags_from_content(title, content, category, site_dir):
+    """从文章标题、内容、分类中自动提取关键词作为标签，优先匹配已有标签，最多4个"""
+    existing_tags = get_existing_tags(site_dir)
+    candidate_tags = []
     
-    # 分类肯定要作为标签
+    # 优先级 1: 分类（肯定第一个）
     if category and category.strip():
-        keywords.add(category.strip())
+        cat = category.strip()
+        candidate_tags.append(cat)
     
-    # 标题中长度大于 2 的词加入关键词
-    for word in title_words:
-        if len(word) >= 2:
-            keywords.add(word)
-    
-    # 从内容中查找书名（## 书名 这种格式）
-    book_matches = re.findall(r'[#]*\s*[《]([^》]+)[》]', content)
+    # 优先级 2: 书名（从《》中提取），先匹配已有标签
+    book_matches = re.findall(r'[《]([^》]+)[》]', content if content else title)
     for book in book_matches:
+        book = book.strip()
         if len(book) >= 2:
-            keywords.add(book.strip())
+            # 如果书名在已有标签中，优先放前面
+            if book in existing_tags and book not in candidate_tags:
+                candidate_tags.insert(1 if len(candidate_tags) == 1 else len(candidate_tags), book)
+            elif book not in candidate_tags:
+                candidate_tags.append(book)
     
-    # 如果提取出来不到 2 个标签，加上默认的阅读、成长
-    if len(keywords) < 2:
-        keywords.add("阅读")
-        keywords.add("成长")
+    # 优先级 3: 从标题提取分词，优先匹配已有标签
+    title_words = re.findall(r'[\u4e00-\u9fffa-zA-Z0-9]+', title)
+    # 先加已有匹配的
+    for word in title_words:
+        word = word.strip()
+        if len(word) >= 3 and word in existing_tags and word not in candidate_tags:
+            candidate_tags.append(word)
+    # 再加新的关键词
+    for word in title_words:
+        word = word.strip()
+        if len(word) >= 3 and word not in candidate_tags:
+            candidate_tags.append(word)
     
-    # 限制最多 8 个标签，避免太多
-    tags = list(keywords)[:8]
+    # 如果不够，兜底加默认
+    if len(candidate_tags) < 2:
+        if "阅读" not in candidate_tags:
+            candidate_tags.append("阅读")
+        if len(candidate_tags) < 2 and "成长" not in candidate_tags:
+            candidate_tags.append("成长")
+    
+    # 限制最多 4 个标签
+    tags = candidate_tags[:4]
     return tags
 
 
@@ -452,8 +508,8 @@ def create_hugo_article(config, article):
         if isinstance(img_arr, list) and len(img_arr) > 0:
             image_url = img_arr[0].get("text", "")
     
-    # 自动提取标签：标题 + 书名 + 分类 + 默认兜底
-    tags = extract_tags_from_content(title, markdown_content, category)
+    # 自动提取标签：标题 + 书名 + 分类 + 默认兜底，优先匹配已有标签，最多4个
+    tags = extract_tags_from_content(title, markdown_content, category, site_dir)
     
     date_str = article.get("date", datetime.now(CST).strftime("%Y-%m-%d"))
 
