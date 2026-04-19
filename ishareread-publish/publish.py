@@ -380,11 +380,52 @@ def create_hugo_article(config, article):
     """创建 Hugo 文章，返回 (文章目录路径, 实际 slug)"""
     site_dir = Path(config["HUGO_SITE_DIR"])
     title = article["title"]
-    description = article.get("description", "")
-    category = article.get("category", "阅读")
-    tags = article.get("tags", ["阅读", "成长"])
-    markdown_content = article.get("content_md", "")
-    image_url = article.get("image_url", "")
+    
+    # 飞书表格字段名：文章标题、文章分类、文章标签、文章描述、文章内容-markdown、文章配图
+    description = ""
+    if "description" in article:
+        description = article["description"]
+    elif "文章描述" in article:
+        desc_arr = article["文章描述"]
+        if isinstance(desc_arr, list) and len(desc_arr) > 0:
+            description = desc_arr[0].get("text", "")
+    
+    category = "阅读"
+    if "category" in article:
+        category = article["category"]
+    elif "文章分类" in article:
+        cat_arr = article["文章分类"]
+        if isinstance(cat_arr, list) and len(cat_arr) > 0:
+            category = cat_arr[0].get("text", "阅读")
+    
+    # 解析标签：飞书表格是逗号分隔文本，存储在数组中
+    tags = ["阅读", "成长"]
+    if "tags" in article:
+        tags = article["tags"]
+    elif "文章标签" in article:
+        tag_arr = article["文章标签"]
+        if isinstance(tag_arr, list) and len(tag_arr) > 0:
+            tag_text = tag_arr[0].get("text", "")
+            if tag_text:
+                # 按逗号、顿号分隔
+                tags = [t.strip() for t in re.split(r'[,，、]', tag_text) if t.strip()]
+    
+    markdown_content = ""
+    if "content_md" in article:
+        markdown_content = article["content_md"]
+    elif "文章内容-markdown" in article:
+        md_arr = article["文章内容-markdown"]
+        if isinstance(md_arr, list) and len(md_arr) > 0:
+            markdown_content = md_arr[0].get("text", "")
+    
+    image_url = ""
+    if "image_url" in article:
+        image_url = article["image_url"]
+    elif "文章配图" in article:
+        img_arr = article["文章配图"]
+        if isinstance(img_arr, list) and len(img_arr) > 0:
+            image_url = img_arr[0].get("text", "")
+    
     date_str = article.get("date", datetime.now(CST).strftime("%Y-%m-%d"))
 
     # 自动处理同日文章排序：检查同一天已有文章的最大时间，在此基础上 +4 小时
