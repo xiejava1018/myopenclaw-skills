@@ -393,7 +393,7 @@ def upload_file(token, config, local_path, file_name, folder_token):
 
 # ── Coze 工作流 ──────────────────────────────────────────
 
-def call_coze_workflow(config, title, digest, article_type, content_file, image_prompt):
+def call_coze_workflow(config, title, digest, article_type, content_file, image_prompt, article_tags=None):
     if not config.get("COZE_API_TOKEN"):
         print("ERROR: COZE_API_TOKEN 未配置，请运行: python3 article_workflow.py init", file=sys.stderr)
         sys.exit(1)
@@ -401,15 +401,21 @@ def call_coze_workflow(config, title, digest, article_type, content_file, image_
     with open(content_file, "r") as f:
         article_content = f.read()
 
+    params = {
+        "article_content": article_content,
+        "article_digest": digest,
+        "article_imageprompt": image_prompt,
+        "article_title": title,
+        "article_type": article_type,
+    }
+
+    # 添加文章标签参数（新增字段）
+    if article_tags:
+        params["article_tags"] = article_tags
+
     payload = json.dumps({
         "workflow_id": config.get("COZE_WORKFLOW_ID", DEFAULTS["COZE_WORKFLOW_ID"]),
-        "parameters": {
-            "article_content": article_content,
-            "article_digest": digest,
-            "article_imageprompt": image_prompt,
-            "article_title": title,
-            "article_type": article_type,
-        },
+        "parameters": params,
     }, ensure_ascii=False)
 
     tmp = "/tmp/_coze_payload.json"
@@ -470,6 +476,7 @@ def main():
     p_coze.add_argument("--type", required=True)
     p_coze.add_argument("--content-file", required=True)
     p_coze.add_argument("--image-prompt", required=True)
+    p_coze.add_argument("--tags", help="文章标签（逗号分隔，每个标签≤6字，最多5个）", default=None)
 
     args = parser.parse_args()
     if not args.command:
@@ -519,7 +526,7 @@ def main():
         update_topic_status(token, config, args.record_id, args.status)
 
     elif args.command == "call-coze":
-        call_coze_workflow(config, args.title, args.digest, args.type, args.content_file, args.image_prompt)
+        call_coze_workflow(config, args.title, args.digest, args.type, args.content_file, args.image_prompt, args.tags)
 
 
 if __name__ == "__main__":

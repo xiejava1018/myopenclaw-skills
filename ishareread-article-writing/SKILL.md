@@ -116,12 +116,14 @@ python3 scripts/article_workflow.py call-coze \
   --digest "文章摘要（不超过120字）" \
   --type "文章分类" \
   --content-file /tmp/article_new.md \
-  --image-prompt "根据文章内容生成的配图提示词（英文）"
+  --image-prompt "根据文章内容生成的配图提示词（英文）" \
+  --tags "国际政治,社会理论,世界秩序"
 ```
 
 参数说明：
 - `--digest`：不超过 120 字的摘要
 - `--image-prompt`：英文描述，用于生成文章配图
+- `--tags`：**新增** → 文章标签，逗号分隔，每个标签≤6个字，最多5个，传入 Coze 工作流自动填入文案库
 
 ### 第6步：更新选题状态
 
