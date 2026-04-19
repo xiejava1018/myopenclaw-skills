@@ -376,17 +376,55 @@ def _auto_increment_time(site_dir, date_str):
     return f"{date_str}T{new_hour:02d}:00:00+08:00"
 
 
+def extract_tags_from_content(title, content, category):
+    """从文章标题、内容、分类中自动提取关键词作为标签"""
+    # 先从标题提取关键词（标题里的都是核心）
+    title_words = re.findall(r'[\u4e00-\u9fffa-zA-Z0-9]+', title)
+    keywords = set()
+    
+    # 分类肯定要作为标签
+    if category and category.strip():
+        keywords.add(category.strip())
+    
+    # 标题中长度大于 2 的词加入关键词
+    for word in title_words:
+        if len(word) >= 2:
+            keywords.add(word)
+    
+    # 从内容中查找书名（## 书名 这种格式）
+    book_matches = re.findall(r'[#]*\s*[《]([^》]+)[》]', content)
+    for book in book_matches:
+        if len(book) >= 2:
+            keywords.add(book.strip())
+    
+    # 如果提取出来不到 2 个标签，加上默认的阅读、成长
+    if len(keywords) < 2:
+        keywords.add("阅读")
+        keywords.add("成长")
+    
+    # 限制最多 8 个标签，避免太多
+    tags = list(keywords)[:8]
+    return tags
+
+
 def create_hugo_article(config, article):
     """创建 Hugo 文章，返回 (文章目录路径, 实际 slug)"""
     site_dir = Path(config["HUGO_SITE_DIR"])
-    title = article["title"]
     
-    # 飞书表格字段名：文章标题、文章分类、文章标签、文章描述、文章内容-markdown、文章配图
+    # 飞书表格字段名：文章标题、文章分类、文章摘要、文章内容-markdown、文章配图
+    title = ""
+    if "title" in article:
+        title = article["title"]
+    elif "文章标题" in article:
+        title_arr = article["文章标题"]
+        if isinstance(title_arr, list) and len(title_arr) > 0:
+            title = title_arr[0].get("text", "")
+    
     description = ""
     if "description" in article:
         description = article["description"]
-    elif "文章描述" in article:
-        desc_arr = article["文章描述"]
+    elif "文章摘要" in article:
+        desc_arr = article["文章摘要"]
         if isinstance(desc_arr, list) and len(desc_arr) > 0:
             description = desc_arr[0].get("text", "")
     
@@ -397,18 +435,6 @@ def create_hugo_article(config, article):
         cat_arr = article["文章分类"]
         if isinstance(cat_arr, list) and len(cat_arr) > 0:
             category = cat_arr[0].get("text", "阅读")
-    
-    # 解析标签：飞书表格是逗号分隔文本，存储在数组中
-    tags = ["阅读", "成长"]
-    if "tags" in article:
-        tags = article["tags"]
-    elif "文章标签" in article:
-        tag_arr = article["文章标签"]
-        if isinstance(tag_arr, list) and len(tag_arr) > 0:
-            tag_text = tag_arr[0].get("text", "")
-            if tag_text:
-                # 按逗号、顿号分隔
-                tags = [t.strip() for t in re.split(r'[,，、]', tag_text) if t.strip()]
     
     markdown_content = ""
     if "content_md" in article:
@@ -425,6 +451,9 @@ def create_hugo_article(config, article):
         img_arr = article["文章配图"]
         if isinstance(img_arr, list) and len(img_arr) > 0:
             image_url = img_arr[0].get("text", "")
+    
+    # 自动提取标签：标题 + 书名 + 分类 + 默认兜底
+    tags = extract_tags_from_content(title, markdown_content, category)
     
     date_str = article.get("date", datetime.now(CST).strftime("%Y-%m-%d"))
 
