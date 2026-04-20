@@ -673,6 +673,7 @@ def publish_to_wechat(config, article, publish_url):
         {
             "workflow_id": workflow_id,
             "parameters": {
+                "article_title": title,
                 "title": title,
                 "content": html_content,
                 "imageurl": image_url,
