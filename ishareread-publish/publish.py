@@ -376,234 +376,67 @@ def _auto_increment_time(site_dir, date_str):
     return f"{date_str}T{new_hour:02d}:00:00+08:00"
 
 
-def get_existing_tags(site_dir):
-    """读取 Hugo 站点已有的标签，返回集合"""
-    try:
-        # 查找所有已生成文章的 front matter 提取标签
-        content_dir = Path(site_dir) / "content" / "post"
-        if not content_dir.exists():
-            return set()
-        
-        existing_tags = set()
-        # 遍历所有文章目录，提取标签
-        for post_dir in content_dir.iterdir():
-            if not post_dir.is_dir():
-                continue
-            index_md = post_dir / "index.md"
-            if not index_md.exists():
-                continue
-            try:
+def find_existing_article(site_dir, title):
+    """检查是否存在相同标题的文章，返回已存在的目录路径或 None"""
+    content_dir = Path(site_dir) / "content" / "post"
+    if not content_dir.exists():
+        return None
+    
+    # 标准化标题：统一引号格式，处理 YAML 转义
+    normalized_title = title.strip()
+    # 处理转义引号和中文引号
+    normalized_title = normalized_title.replace(chr(92)+chr(34), chr(34))  # \" -> "
+    normalized_title = normalized_title.replace(chr(8220), chr(34)).replace(chr(8221), chr(34))  # 中文双引号
+    normalized_title = normalized_title.replace(chr(8216), chr(39)).replace(chr(8217), chr(39))  # 中文单引号
+    
+    for post_dir in content_dir.iterdir():
+        if not post_dir.is_dir():
+            continue
+        index_md = post_dir / "index.md"
+        if not index_md.exists():
+            continue
+        try:
+            with open(index_md, encoding="utf-8") as f:
                 in_front_matter = False
-                found_tags = False
-                with open(index_md, encoding="utf-8") as f:
-                    for line in f:
-                        if line.strip() == "---":
-                            if not in_front_matter:
-                                in_front_matter = True
-                                continue
-                            else:
-                                break
-                        if in_front_matter and line.strip().startswith("tags:"):
-                            found_tags = True
+                for line in f:
+                    if line.strip() == "---":
+                        if not in_front_matter:
+                            in_front_matter = True
                             continue
-                        if found_tags and in_front_matter and line.strip().startswith("-"):
-                            tag = line.strip().lstrip("- ").strip()
-                            if tag and len(tag) <= 6:
-                                existing_tags.add(tag)
-            except Exception:
-                continue
-        return existing_tags
-    except Exception:
-        return set()
-
-
-def extract_tags_from_content(title, content, category, site_dir):
-    """从文章标题、内容、分类中自动提取关键词作为标签，优先匹配已有标签，最多4个，标签长度≤6字"""
-    existing_tags = get_existing_tags(site_dir)
-    candidate_tags = []
-    all_text = (title + " " + content) if content else title
-    
-    # ========== 优先级 1: 分类（第一个，长度必须≤6）
-    if category and category.strip():
-        cat = category.strip()
-        if len(cat) <= 6:
-            if cat not in candidate_tags:
-                candidate_tags.append(cat)
-        else:
-            # 分类太长，切分找第一个符合要求的词
-            words = re.findall(r'[\u4e00-\u9fff]{2,6}', cat)
-            found = False
-            for word in words:
-                if word not in candidate_tags and len(word) <= 6:
-                    candidate_tags.append(word)
-                    found = True
-                    break
-            # 没找到合适的就截前6个字
-            if not found and len(cat) >= 2:
-                candidate_tags.append(cat[:6])
-    
-    # ========== 优先级 2: 已有标签，在全文中出现过的优先（复用已有，避免碎片化）
-    # 直接检查每个已有标签是否在全文出现，按词长排序（长词更精确优先）
-    if len(candidate_tags) < 4:
-        matched_existing = []
-        for tag in existing_tags:
-            if tag in all_text and tag not in candidate_tags and not (tag.startswith('第') and tag.endswith('期')):
-                matched_existing.append((-len(tag), tag))  # 负长度，长词优先排序
-        # 排序：长词优先
-        matched_existing.sort()
-        for _, tag in matched_existing:
-            if len(candidate_tags) >= 4:
-                break
-            candidate_tags.append(tag)
-    
-    # ========== 优先级 3: 已有标签还没填满，再从《》提取书名核心词补充空位
-    if len(candidate_tags) >= 4:
-        # 已经够了，跳过
-        pass
-    else:
-        book_matches = re.findall(r'[《]([^》]+)[》]', all_text)
-        for full_book_name in book_matches:
-            if len(candidate_tags) >= 4:
-                break
-            full_book_name = full_book_name.strip()
-            # 整本书名符合长度要求
-            if len(full_book_name) <= 6 and len(full_book_name) >= 2 and full_book_name not in candidate_tags:
-                candidate_tags.append(full_book_name)
-                continue
-            # 书名太长，直接取最后 2-4 个汉字（书名核心一般在最后，比如《XXX的YYYY》核心就是 YYYY）
-            n = min(4, len(full_book_name))
-            short_name = full_book_name[-n:]
-            # 保证长度至少 2
-            if len(short_name) >= 2 and short_name not in candidate_tags:
-                candidate_tags.append(short_name)
-    
-    # ========== 优先级 4: 还不够，从正文提取高频词补充
-    if len(candidate_tags) < 4:
-        word_count = {}
-        # 停用词
-        stop_words = {
-            "这个", "那个", "就是", "还有", "可以", "我们", "他们", "你们",
-            "这样", "那样", "但是", "因为", "所以", "如果", "已经", "认为",
-            "今天", "明天", "一点", "一些", "非常", "怎么", "什么", "为什么",
-            "如何", "第", "期", "阅读", "成长", "文章", "这本书", "推荐", 
-            "国际", "政治", "国际政治", "阅读指南"
-        }
-        # 按标点分句，提取所有有意义的 2-6 字词
-        # 先把全文按非中文字符分割，得到纯中文短语
-        phrases = re.split(r'[^\u4e00-\u9fff]+', all_text)
-        for phrase in phrases:
-            # 对每个中文短语，提取所有 2-6 字的词（从开头和结尾）
-            n = len(phrase)
-            if n < 2:
-                continue
-            # 取开头和结尾的短词，更可能是关键词
-            if n >= 2 and n <= 6:
-                word = phrase
-                if (word not in candidate_tags
-                    and word not in existing_tags
-                    and not any(c.isdigit() for c in word)
-                    and not (word.startswith('第') and word.endswith('期'))
-                    and word not in stop_words):
-                    word_count[word] = word_count.get(word, 0) + 1
-            else:
-                # 短语太长，取前 4 字和后 4 字
-                start_word = phrase[:4]
-                if (start_word not in candidate_tags
-                    and start_word not in existing_tags
-                    and not any(c.isdigit() for c in start_word)
-                    and not (start_word.startswith('第') and start_word.endswith('期'))
-                    and start_word not in stop_words):
-                    word_count[start_word] = word_count.get(start_word, 0) + 1
-                end_word = phrase[-4:]
-                if (end_word not in candidate_tags
-                    and end_word not in existing_tags
-                    and not any(c.isdigit() for c in end_word)
-                    and not (end_word.startswith('第') and end_word.endswith('期'))
-                    and end_word not in stop_words):
-                    word_count[end_word] = word_count.get(end_word, 0) + 1
-        # 按词频降序排列
-        sorted_words = sorted(word_count.keys(), key=lambda w: word_count[w], reverse=True)
-        for word in sorted_words:
-            if len(candidate_tags) >= 4:
-                break
-            candidate_tags.append(word)
-    
-    # ========== 兜底：不够就加默认
-    if len(candidate_tags) < 2:
-        if "阅读" not in candidate_tags:
-            candidate_tags.append("阅读")
-        if len(candidate_tags) < 2 and "成长" not in candidate_tags:
-            candidate_tags.append("成长")
-    
-    # 最终：严格控制最多 4 个标签
-    tags = candidate_tags[:4]
-    return tags
+                        else:
+                            break
+                    if in_front_matter and line.strip().startswith("title:"):
+                        # 提取标题值
+                        existing_title = line.strip()[6:].strip().strip(chr(34)).strip(chr(39))
+                        # 标准化后比较
+                        existing_normalized = existing_title
+                        existing_normalized = existing_normalized.replace(chr(92)+chr(34), chr(34))
+                        existing_normalized = existing_normalized.replace(chr(8220), chr(34)).replace(chr(8221), chr(34))
+                        existing_normalized = existing_normalized.replace(chr(8216), chr(39)).replace(chr(8217), chr(39))
+                        if existing_normalized == normalized_title:
+                            return str(post_dir)
+        except Exception:
+            continue
+    return None
 
 
 def create_hugo_article(config, article):
     """创建 Hugo 文章，返回 (文章目录路径, 实际 slug)"""
     site_dir = Path(config["HUGO_SITE_DIR"])
-    
-    # 飞书表格字段名：文章标题、文章分类、文章摘要、文章内容-markdown、文章配图
-    title = ""
-    if "title" in article:
-        title = article["title"]
-    elif "文章标题" in article:
-        title_arr = article["文章标题"]
-        if isinstance(title_arr, list) and len(title_arr) > 0:
-            title = title_arr[0].get("text", "")
-    
-    description = ""
-    if "description" in article:
-        description = article["description"]
-    elif "文章摘要" in article:
-        desc_arr = article["文章摘要"]
-        if isinstance(desc_arr, list) and len(desc_arr) > 0:
-            description = desc_arr[0].get("text", "")
-    
-    category = "阅读"
-    if "category" in article:
-        category = article["category"]
-    elif "文章分类" in article:
-        cat_arr = article["文章分类"]
-        if isinstance(cat_arr, list) and len(cat_arr) > 0:
-            category = cat_arr[0].get("text", "阅读")
-    
-    # 读取文章标签：优先使用手动填写的「文章标签」（逗号分隔）
-    tags = []
-    if "tags" in article:
-        tags = article["tags"]
-    elif "文章标签" in article:
-        tag_arr = article["文章标签"]
-        if isinstance(tag_arr, list) and len(tag_arr) > 0:
-            tag_text = tag_arr[0].get("text", "")
-            if tag_text:
-                # 按逗号、顿号、空格分隔
-                tags = [t.strip() for t in re.split(r'[,，、\s]+', tag_text) if t.strip()]
-                # 过滤：每个标签≤6字，最多4个
-                tags = [t for t in tags if len(t) <= 6][:4]
-    
-    # 如果没有手动填写标签，再自动提取
-    if not tags:
-        tags = extract_tags_from_content(title, markdown_content, category, site_dir)
-    
-    markdown_content = ""
-    if "content_md" in article:
-        markdown_content = article["content_md"]
-    elif "文章内容-markdown" in article:
-        md_arr = article["文章内容-markdown"]
-        if isinstance(md_arr, list) and len(md_arr) > 0:
-            markdown_content = md_arr[0].get("text", "")
-    
-    image_url = ""
-    if "image_url" in article:
-        image_url = article["image_url"]
-    elif "文章配图" in article:
-        img_arr = article["文章配图"]
-        if isinstance(img_arr, list) and len(img_arr) > 0:
-            image_url = img_arr[0].get("text", "")
-    
+    title = article["title"]
+    description = article.get("description", "")
+    category = article.get("category", "阅读")
+    tags = article.get("tags", ["阅读", "成长"])
+    markdown_content = article.get("content_md", "")
+    image_url = article.get("image_url", "")
     date_str = article.get("date", datetime.now(CST).strftime("%Y-%m-%d"))
+
+    # 修复：检查是否已存在相同标题的文章
+    existing_dir = find_existing_article(site_dir, title)
+    if existing_dir:
+        print(f"  跳过：文章已存在: {title}")
+        print(f"     已存在目录: {existing_dir}")
+        return existing_dir
 
     # 自动处理同日文章排序：检查同一天已有文章的最大时间，在此基础上 +4 小时
     iso_date = _auto_increment_time(site_dir, date_str)
@@ -750,14 +583,14 @@ def git_pull_latest(config):
 
 
 def git_commit_and_push(config, title):
-    """提交文章到 Git 并推送到 GitHub"""
+    """提交文章到 Git 并推送到 GitHub，失败时自动 rebase 重试"""
     site_dir = config["HUGO_SITE_DIR"]
 
     try:
         # 发布前先拉取最新代码
         print("  🔄 拉取最新代码...")
         git_pull_latest(config)
-        
+
         # git add
         subprocess.run(["git", "add", "content/", "public/", "static/"], cwd=site_dir, capture_output=True)
 
@@ -790,8 +623,31 @@ def git_commit_and_push(config, title):
             text=True,
         )
         if result.returncode != 0:
-            print(f"  ❌ Git push 失败: {result.stderr}")
-            return False
+            # push 失败，尝试 rebase 后重试
+            print(f"  ⚠️  Git push 失败，尝试 rebase 重试...")
+            rebase_result = subprocess.run(
+                ["git", "pull", "--rebase", "origin", "main"],
+                cwd=site_dir,
+                capture_output=True,
+                text=True,
+            )
+            if rebase_result.returncode == 0:
+                # rebase 成功，再次 push
+                retry_result = subprocess.run(
+                    ["git", "push", "origin", "main"],
+                    cwd=site_dir,
+                    capture_output=True,
+                    text=True,
+                )
+                if retry_result.returncode == 0:
+                    print("  ✅ Git push 成功（rebase 后）")
+                    return True
+                else:
+                    print(f"  ❌ Git push 重试失败: {retry_result.stderr}")
+                    return False
+            else:
+                print(f"  ❌ Git rebase 失败: {rebase_result.stderr}")
+                return False
         print("  ✅ Git push 成功")
         return True
 
@@ -859,12 +715,25 @@ def publish_to_wechat(config, article, publish_url):
 def parse_feishu_article(record):
     """从飞书记录解析文章数据"""
     fields = record.get("fields", {})
-    title = fields.get("文章标题", "")
+    
+    # 辅助函数：提取文本字段（处理列表格式）
+    def get_text(field_value):
+        if isinstance(field_value, list) and field_value:
+            return field_value[0].get('text', '') or ''
+        return field_value or ''
+    
+    title = get_text(fields.get("文章标题", ""))
 
     # 解析日期
     date_ts = fields.get("日期", 0)
+    now_ts = datetime.now(CST).timestamp() * 1000
     if isinstance(date_ts, (int, float)) and date_ts > 0:
-        dt = datetime.fromtimestamp(date_ts / 1000, tz=CST)
+        # 如果日期是未来时间，使用当前时间
+        if date_ts > now_ts:
+            print(f"  ⚠️  文章日期是未来时间，将使用当前时间")
+            dt = datetime.now(CST)
+        else:
+            dt = datetime.fromtimestamp(date_ts / 1000, tz=CST)
         date_str = dt.strftime("%Y-%m-%d")
         iso_date = dt.strftime("%Y-%m-%dT%H:%M:%S+08:00")
     else:
@@ -872,23 +741,45 @@ def parse_feishu_article(record):
         iso_date = datetime.now(CST).strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
     # 解析描述（从 markdown 内容中提取引用行）
-    content_md = fields.get("文章内容-markdown", "")
+    content_md = get_text(fields.get("文章内容-markdown", ""))
     description = ""
     for line in content_md.split("\n"):
         if line.startswith(">") and not line.startswith(">>"):
             description = line.lstrip("> ").strip()
             break
 
+    # 解析标签：从「文章标签」字段读取
+    tags = ["阅读", "成长"]  # 默认值
+    tags_field = fields.get("文章标签", "")
+    if tags_field:
+        if isinstance(tags_field, list):
+            # 可能是富文本格式 [{text: "标签1,标签2", type: "text"}]
+            if tags_field and isinstance(tags_field[0], dict):
+                tags_text = tags_field[0].get("text", "")
+            else:
+                # 可能是直接的字符串列表 ["标签1", "标签2"]
+                tags_text = ",".join(str(t) for t in tags_field)
+        else:
+            tags_text = str(tags_field)
+        
+        # 按逗号、顿号分隔
+        if tags_text:
+            tags = [t.strip() for t in re.split(r'[,，、\s]+', tags_text) if t.strip()]
+            # 过滤：每个标签≤6字，最多4个
+            tags = [t for t in tags if len(t) <= 6][:4]
+            if not tags:
+                tags = ["阅读", "成长"]
+
     return {
         "record_id": record.get("record_id", ""),
         "title": title,
         "description": description,
         "content_md": content_md,
-        "content_html": fields.get("文章内容-html", ""),
-        "category": fields.get("文章分类", "阅读"),
-        "tags": ["阅读", "成长"],
-        "image_url": fields.get("文章配图", ""),
-        "publish_url": fields.get("文章发布地址", ""),
+        "content_html": get_text(fields.get("文章内容-html", "")),
+        "category": get_text(fields.get("文章分类", "阅读")),
+        "tags": tags,
+        "image_url": get_text(fields.get("文章配图", "")),
+        "publish_url": get_text(fields.get("文章发布地址", "")),
         "date": date_str,
         "iso_date": iso_date,
     }
@@ -945,6 +836,7 @@ def publish_article(config, article, hugo_only=False, wechat_only=False):
     print(f"{'='*60}")
 
     publish_url = article.get("publish_url", "")
+    git_success = True  # 跟踪 Git 是否成功
 
     # Step 0: 发布前先拉取最新代码（避免多代理发布冲突）
     if not wechat_only:
@@ -959,18 +851,20 @@ def publish_article(config, article, hugo_only=False, wechat_only=False):
 
         print("\n[Step 2/6] 构建 Hugo 站点...")
         if not build_hugo(config):
-            return False
+            print("  ⚠️  Hugo 构建失败，跳过网站发布")
+            git_success = False
+        else:
+            # 获取发布 URL
+            print("\n[Step 3/6] 提交到 Git 并推送...")
+            publish_url = get_published_url(config, title)
+            if not publish_url:
+                print("  ⚠️  无法获取发布 URL，使用估算 URL")
+                base_url = config["SITE_BASE_URL"].rstrip("/")
+                publish_url = f"{base_url}/p/?"
 
-        # 获取发布 URL
-        print("\n[Step 3/6] 提交到 Git 并推送...")
-        publish_url = get_published_url(config, title)
-        if not publish_url:
-            print("  ⚠️  无法获取发布 URL，使用估算 URL")
-            base_url = config["SITE_BASE_URL"].rstrip("/")
-            publish_url = f"{base_url}/p/?"
-
-        if not git_commit_and_push(config, title):
-            return False
+            if not git_commit_and_push(config, title):
+                print("  ⚠️  Git 推送失败，但继续执行后续步骤")
+                git_success = False
 
         # Step 4: 回写飞书表格
         print("\n[Step 4/6] 回写文案库...")
@@ -1000,12 +894,13 @@ def publish_article(config, article, hugo_only=False, wechat_only=False):
             publish_to_wechat(config, article, publish_url)
         except Exception as e:
             print(f"  ❌ 微信公众号发布失败: {e}")
-            return False
+            # 微信失败也返回 True，因为网站可能已成功
+            return git_success
 
     print(f"\n🎉 《{title}》发布完成！")
     if publish_url:
         print(f"   📎 {publish_url}")
-    return True
+    return git_success
 
 
 def main():
