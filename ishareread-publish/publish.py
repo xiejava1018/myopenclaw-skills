@@ -741,13 +741,16 @@ def parse_feishu_article(record):
         date_str = datetime.now(CST).strftime("%Y-%m-%d")
         iso_date = datetime.now(CST).strftime("%Y-%m-%dT%H:%M:%S+08:00")
 
-    # 解析描述（从 markdown 内容中提取引用行）
+    # 解析描述：优先从「文章摘要」字段读取
     content_md = get_text(fields.get("文章内容-markdown", ""))
-    description = ""
-    for line in content_md.split("\n"):
-        if line.startswith(">") and not line.startswith(">>"):
-            description = line.lstrip("> ").strip()
-            break
+    description = get_text(fields.get("文章摘要", ""))
+    
+    # 如果文章摘要为空，尝试从 markdown 内容中提取引用行
+    if not description:
+        for line in content_md.split("\n"):
+            if line.startswith(">") and not line.startswith(">>"):
+                description = line.lstrip("> ").strip()
+                break
 
     # 解析标签：从「文章标签」字段读取
     tags = ["阅读", "成长"]  # 默认值
