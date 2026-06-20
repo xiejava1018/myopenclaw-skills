@@ -26,6 +26,8 @@ def clean_env(monkeypatch, tmp_path):
         "DEFAULT_RETRIEVE_KB",
         "DEFAULT_UPLOAD_KB",
         "KB_ALIASES",
+        "SOURCES",
+        "DEFAULT_SOURCE",
     ):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.chdir(tmp_path)
@@ -208,3 +210,51 @@ def test_get_aliases_from_env_var(monkeypatch, tmp_path):
     (tmp_path / ".env").write_text("KNOWLEDGE_BASE_URL=http://x\n", encoding="utf-8")
     monkeypatch.setenv("KB_ALIASES", '{"env_alias":"kb_env"}')
     assert kb_config.get_aliases() == {"env_alias": "kb_env"}
+
+
+# ---------------------------------------------------------------------------
+# SOURCES / DEFAULT_SOURCE（多来源支持 — Task 1）
+# ---------------------------------------------------------------------------
+
+
+def _write_env(tmp_path, text):
+    (tmp_path / ".env").write_text(text, encoding="utf-8")
+
+
+def test_get_sources_empty_when_missing(tmp_path):
+    _write_env(tmp_path, "KNOWLEDGE_BASE_URL=http://x\n")
+    assert kb_config.get_sources() == []
+
+
+def test_get_sources_parses_json(tmp_path):
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"a","url":"http://a/api/v1","api_key":"sk-a"},'
+        '{"name":"b","url":"http://b/api/v1","api_key":"sk-b"}]\n',
+    )
+    srcs = kb_config.get_sources()
+    assert len(srcs) == 2
+    assert srcs[0] == {"name": "a", "url": "http://a/api/v1", "api_key": "sk-a", "group": None}
+    assert srcs[1]["name"] == "b"
+
+
+def test_get_sources_invalid_json_returns_empty(capsys, tmp_path):
+    _write_env(tmp_path, "SOURCES=not-json\n")
+    assert kb_config.get_sources() == []
+    assert "SOURCES" in capsys.readouterr().err
+
+
+def test_get_sources_skips_malformed_entries(tmp_path):
+    """缺 name/url/api_key 的条目被丢弃并告警。"""
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"a","url":"http://a","api_key":"sk-a"},'
+        '{"name":"bad"},{"url":"http://x","api_key":"sk-x"}]\n',
+    )
+    srcs = kb_config.get_sources()
+    assert [s["name"] for s in srcs] == ["a"]
+
+
+def test_default_source_from_config(tmp_path):
+    _write_env(tmp_path, "DEFAULT_SOURCE=ops\n")
+    assert kb_config.get_config()["DEFAULT_SOURCE"] == "ops"

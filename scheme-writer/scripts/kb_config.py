@@ -13,8 +13,11 @@ import json
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 KB_ALIASES_KEY = "KB_ALIASES"
+SOURCES_KEY = "SOURCES"
+DEFAULT_SOURCE_KEY = "DEFAULT_SOURCE"
 
 
 def _find_env_path() -> Path | None:
@@ -68,6 +71,8 @@ def _load_merged_env() -> dict[str, str]:
         "DEFAULT_RETRIEVE_KB",
         "DEFAULT_UPLOAD_KB",
         KB_ALIASES_KEY,
+        "SOURCES",
+        "DEFAULT_SOURCE",
     ):
         val = os.environ.get(key)
         if val is not None:
@@ -98,6 +103,45 @@ def get_aliases() -> dict[str, str]:
         )
         return {}
     return {str(k): str(v) for k, v in parsed.items()}
+
+
+def get_sources() -> list[dict[str, Any]]:
+    """解析 SOURCES JSON 数组为来源 dict 列表。
+
+    每条 {'name','url','api_key','group'}；缺字段的条目丢弃并 stderr 告警。
+    非法 JSON → [] + 告警。
+    """
+    raw = get_config().get(SOURCES_KEY, "")
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        sys.stderr.write(f"[kb_config] {SOURCES_KEY} 不是合法 JSON，已忽略: {exc}\n")
+        return []
+    if not isinstance(parsed, list):
+        sys.stderr.write(f"[kb_config] {SOURCES_KEY} 不是 JSON 数组，已忽略\n")
+        return []
+    result: list[dict[str, Any]] = []
+    for entry in parsed:
+        if not isinstance(entry, dict):
+            continue
+        name = str(entry.get("name", "")).strip()
+        url = str(entry.get("url", "")).strip()
+        api_key = str(entry.get("api_key", "")).strip()
+        if not (name and url and api_key):
+            sys.stderr.write(f"[kb_config] 丢弃不完整来源条目: {entry}\n")
+            continue
+        group_val = entry.get("group")
+        result.append(
+            {
+                "name": name,
+                "url": url,
+                "api_key": api_key,
+                "group": (str(group_val).strip() or None) if group_val else None,
+            }
+        )
+    return result
 
 
 def set_aliases(mapping: dict[str, str], path: Path | None = None) -> Path:
