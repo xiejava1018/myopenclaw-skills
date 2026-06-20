@@ -18,7 +18,9 @@ import argparse
 import sys
 from typing import Any
 
-from kb_config import ConfigError, require
+import kb_config
+import kb_resolve
+from kb_config import ConfigError
 from kb_http import KbError, emit_error, emit_ok, request_json
 
 
@@ -48,6 +50,7 @@ def _normalize_doc(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def list_docs(
+    source_name: str,
     kb_id: str,
     *,
     page: int = 1,
@@ -58,16 +61,18 @@ def list_docs(
     """调 WeKnora 列出某 KB 下所有文档。
 
     参数：
+        source_name: 来源名（由 kb_resolve 解析得到）
         kb_id: 知识库 ID
         page: 起始页码（从 1 开始）
         page_size: 每页文档数
         fetch_all: True 时自动翻页直到 total 用尽；False 时只取当前页
         timeout: HTTP 超时秒数
 
-    返回 dict 含 total / page / page_size / documents 列表。
+    返回 dict 含 source / kb_id / total / page / page_size / documents 列表。
     """
-    base = require("KNOWLEDGE_BASE_URL").rstrip("/")
-    api_key = require("KNOWLEDGE_BASE_API_KEY")
+    src = kb_config.get_source(source_name)
+    base = src["url"].rstrip("/")
+    api_key = src["api_key"]
 
     url = f"{base}/knowledge-bases/{kb_id}/knowledge"
     all_docs: list[dict[str, Any]] = []
@@ -105,6 +110,7 @@ def list_docs(
         current_page += 1
 
     return {
+        "source": source_name,
         "kb_id": kb_id,
         "total": total,
         "page": page,
@@ -117,7 +123,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="scheme-writer: 列出某知识库下所有文档（含 parse_status）"
     )
-    parser.add_argument("--kb", required=True, help="知识库 ID")
+    parser.add_argument("--kb", required=True, help="知识库引用：限定别名 / 裸名 / 字面 kb_id")
+    parser.add_argument(
+        "--source",
+        default=None,
+        help="指定来源名（--kb 为限定别名/带前缀时可省略）",
+    )
     parser.add_argument("--page", type=int, default=1, help="起始页码，默认 1")
     parser.add_argument(
         "--page-size", type=int, default=20, help="每页文档数，默认 20"
@@ -133,8 +144,10 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
+        source_name, kb_id = kb_resolve.resolve_kb_ref(args.kb, args.source)
         result = list_docs(
-            args.kb,
+            source_name,
+            kb_id,
             page=args.page,
             page_size=args.page_size,
             fetch_all=args.all,
