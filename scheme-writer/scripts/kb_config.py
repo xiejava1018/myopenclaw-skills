@@ -150,6 +150,29 @@ def get_sources() -> list[dict[str, Any]]:
     return result
 
 
+def get_source(name: str) -> dict[str, Any]:
+    """按 name 取来源；不存在抛 ConfigError。"""
+    for src in get_sources():
+        if src["name"] == name:
+            return src
+    raise ConfigError(f"未知来源: {name}")
+
+
+def resolve_default_source() -> str | None:
+    """确定默认来源：DEFAULT_SOURCE > 唯一来源隐式 > None。
+
+    None 表示无法隐式决定，调用方应报错反问（铁律三：不猜）。
+    单来源场景（迁移后的 default）隐式选中它，保证向后兼容。
+    """
+    cfg_val = get_config().get(DEFAULT_SOURCE_KEY, "").strip()
+    if cfg_val:
+        return cfg_val
+    srcs = get_sources()
+    if len(srcs) == 1:
+        return srcs[0]["name"]
+    return None
+
+
 def set_aliases(mapping: dict[str, str], path: Path | None = None) -> Path:
     """把别名映射序列化后写入 .env 的 KB_ALIASES 字段。
 

@@ -287,3 +287,51 @@ def test_get_sources_dropped_entry_does_not_leak_api_key(capsys, tmp_path):
     err = capsys.readouterr().err
     assert "sk-SECRET-12345" not in err
     assert "leaky" in err  # 但 name 可暴露用于识别
+
+
+# ---------------------------------------------------------------------------
+# get_source / resolve_default_source（Task 2）
+# ---------------------------------------------------------------------------
+
+
+def test_get_source_by_name(tmp_path):
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"a","url":"http://a","api_key":"sk-a"}]\n',
+    )
+    s = kb_config.get_source("a")
+    assert s["url"] == "http://a"
+    assert s["api_key"] == "sk-a"
+
+
+def test_get_source_missing_raises(tmp_path):
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"a","url":"http://a","api_key":"sk-a"}]\n',
+    )
+    with pytest.raises(kb_config.ConfigError):
+        kb_config.get_source("nope")
+
+
+def test_single_source_is_implicit_default(tmp_path):
+    """仅一个来源时，resolve 隐式选中它（向后兼容）。"""
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"solo","url":"http://a","api_key":"sk-a"}]\n',
+    )
+    assert kb_config.resolve_default_source() == "solo"
+
+
+def test_resolve_default_source_uses_config(tmp_path):
+    _write_env(tmp_path, "DEFAULT_SOURCE=picked\n")
+    assert kb_config.resolve_default_source() == "picked"
+
+
+def test_resolve_default_source_none_when_ambiguous(tmp_path):
+    """多来源且无 DEFAULT_SOURCE → 返回 None（调用方应报错反问，铁律三）。"""
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"a","url":"http://a","api_key":"sk-a"},'
+        '{"name":"b","url":"http://b","api_key":"sk-b"}]\n',
+    )
+    assert kb_config.resolve_default_source() is None
