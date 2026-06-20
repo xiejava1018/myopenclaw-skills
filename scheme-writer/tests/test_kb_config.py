@@ -258,3 +258,32 @@ def test_get_sources_skips_malformed_entries(tmp_path):
 def test_default_source_from_config(tmp_path):
     _write_env(tmp_path, "DEFAULT_SOURCE=ops\n")
     assert kb_config.get_config()["DEFAULT_SOURCE"] == "ops"
+
+
+def test_get_sources_with_group(tmp_path):
+    """带 group 的条目正确解析为字符串。"""
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"a","url":"http://a","api_key":"sk-a","group":"运维"}]\n',
+    )
+    srcs = kb_config.get_sources()
+    assert srcs[0]["group"] == "运维"
+
+
+def test_get_sources_non_list_returns_empty(capsys, tmp_path):
+    """SOURCES 不是 JSON 数组（如误写成 dict）→ 空列表 + stderr 告警。"""
+    _write_env(tmp_path, 'SOURCES={"name":"a","url":"http://a","api_key":"sk-a"}\n')
+    assert kb_config.get_sources() == []
+    assert "不是 JSON 数组" in capsys.readouterr().err
+
+
+def test_get_sources_dropped_entry_does_not_leak_api_key(capsys, tmp_path):
+    """丢弃不完整条目时，stderr 绝不打印 api_key 明文（铁律一）。"""
+    _write_env(
+        tmp_path,
+        'SOURCES=[{"name":"leaky","url":"","api_key":"sk-SECRET-12345"}]\n',
+    )
+    assert kb_config.get_sources() == []
+    err = capsys.readouterr().err
+    assert "sk-SECRET-12345" not in err
+    assert "leaky" in err  # 但 name 可暴露用于识别

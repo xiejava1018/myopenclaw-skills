@@ -130,15 +130,21 @@ def get_sources() -> list[dict[str, Any]]:
         url = str(entry.get("url", "")).strip()
         api_key = str(entry.get("api_key", "")).strip()
         if not (name and url and api_key):
-            sys.stderr.write(f"[kb_config] 丢弃不完整来源条目: {entry}\n")
+            sys.stderr.write(
+                f"[kb_config] 丢弃不完整来源条目: name={entry.get('name')!r}"
+                f"（缺 name/url/api_key 之一）\n"
+            )
             continue
         group_val = entry.get("group")
+        group = None
+        if group_val is not None:
+            group = str(group_val).strip() or None
         result.append(
             {
                 "name": name,
                 "url": url,
                 "api_key": api_key,
-                "group": (str(group_val).strip() or None) if group_val else None,
+                "group": group,
             }
         )
     return result
