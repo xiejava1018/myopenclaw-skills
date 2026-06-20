@@ -98,9 +98,9 @@ Content-Type: application/json
   "chunks": [
     {
       "chunk_id": "chunk-uuid-001",
-      "source_doc": "中国电信云运〔2024〕29号.pdf",
+      "source_doc": "示例单位_运维规范〔2024〕29号.pdf",
       "source_doc_id": "doc-uuid-001",
-      "knowledge_filename": "中国电信云运〔2024〕29号.pdf",
+      "knowledge_filename": "示例单位_运维规范〔2024〕29号.pdf",
       "chunk_index": 119,
       "content": "（chunk 文本内容）",
       "score": 0.72,
@@ -120,9 +120,9 @@ Content-Type: application/json
   "chunks": [
     {
       "chunk_id": "chunk-uuid-001",
-      "source_doc": "中国电信云运〔2024〕29号.pdf",
+      "source_doc": "示例单位_运维规范〔2024〕29号.pdf",
       "source_doc_id": "doc-uuid-001",
-      "source_file": "中国电信云运〔2024〕29号.pdf",
+      "source_file": "示例单位_运维规范〔2024〕29号.pdf",
       "chunk_index": 119,
       "content": "（chunk 文本内容）",
       "score": 0.72,
@@ -141,7 +141,7 @@ Content-Type: application/json
 
 ```json
 {
-  "title": "湖南电信_网络安全漏洞管理制度",
+  "title": "示例单位_网络安全漏洞管理制度",
   "content": "# 文档 Markdown 内容...",
   "status": "publish"
 }
@@ -167,7 +167,7 @@ Content-Type: application/json
   "ok": true,
   "doc_id": "doc-uuid-001",
   "kb_id": "kb-uuid-001",
-  "title": "湖南电信_网络安全漏洞管理制度",
+  "title": "示例单位_网络安全漏洞管理制度",
   "size_bytes": 51801
 }
 ```
@@ -191,8 +191,8 @@ Content-Type: application/json
       {
         "id": "doc-uuid-001",
         "knowledge_base_id": "kb-uuid-001",
-        "title": "中国电信云运〔2024〕29号.pdf",
-        "file_name": "中国电信云运〔2024〕29号.pdf",
+        "title": "示例单位_运维规范〔2024〕29号.pdf",
+        "file_name": "示例单位_运维规范〔2024〕29号.pdf",
         "file_type": "pdf",
         "file_size": 2048000,
         "parse_status": "completed",
@@ -205,8 +205,8 @@ Content-Type: application/json
       },
       {
         "id": "doc-uuid-002",
-        "title": "湖南电信_网络安全漏洞管理制度.md",
-        "file_name": "湖南电信_网络安全漏洞管理制度.md",
+        "title": "示例单位_网络安全漏洞管理制度.md",
+        "file_name": "示例单位_网络安全漏洞管理制度.md",
         "file_type": "md",
         "file_size": 51801,
         "parse_status": "processing",
@@ -236,8 +236,8 @@ Content-Type: application/json
   "documents": [
     {
       "doc_id": "doc-uuid-001",
-      "title": "中国电信云运〔2024〕29号.pdf",
-      "file_name": "中国电信云运〔2024〕29号.pdf",
+      "title": "示例单位_运维规范〔2024〕29号.pdf",
+      "file_name": "示例单位_运维规范〔2024〕29号.pdf",
       "file_type": "pdf",
       "file_size": 2048000,
       "parse_status": "completed",
