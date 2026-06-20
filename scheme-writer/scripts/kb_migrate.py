@@ -57,8 +57,9 @@ def migrate(path: Path | None = None) -> list[str]:
     changed = [kb_config.SOURCES_KEY, kb_config.DEFAULT_SOURCE_KEY]
 
     # 旧别名加 default/ 前缀（已含 / 的不动）。
-    # 非法 JSON → 不写 KB_ALIASES 键。write_env 是整文件覆写（只写 flat 里的键），
-    # 故 flat 缺 KB_ALIASES_KEY 等效于别名清空——符合"降级为空"。
+    # 合法 dict → 加前缀后写回 flat；非法 JSON → 显式从 flat 移除该键，
+    # 使迁移产物不含 KB_ALIASES（别名降级为空），避免 write_env 把非法字符串
+    # 原样写回 .env 导致后续每次 get_aliases 重复喷 stderr 告警。
     raw_aliases = cfg.get(kb_config.KB_ALIASES_KEY, "").strip()
     if raw_aliases:
         try:
@@ -73,6 +74,10 @@ def migrate(path: Path | None = None) -> list[str]:
             flat[kb_config.KB_ALIASES_KEY] = json.dumps(new, ensure_ascii=False)
             if new != old:
                 changed.append(kb_config.KB_ALIASES_KEY)
+        else:
+            # 非法 JSON（old is None）：移除 flat 里残留的原始非法字符串，
+            # 让 write_env 不再写回该键。
+            flat.pop(kb_config.KB_ALIASES_KEY, None)
 
     kb_config.write_env(flat, path=Path(target))
     return changed

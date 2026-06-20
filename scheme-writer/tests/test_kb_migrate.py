@@ -127,8 +127,8 @@ def test_migrate_idempotent(tmp_path):
     assert len(kb_config.get_sources()) == 1
 
 
-def test_migrate_invalid_aliases_skipped(tmp_path):
-    """旧 KB_ALIASES 是非法 JSON 时，迁移仍完成（别名降级为空），不阻塞来源迁移。"""
+def test_migrate_invalid_aliases_skipped(tmp_path, capsys):
+    """旧 KB_ALIASES 非法 JSON 时，迁移仍完成（来源合成），别名降级为空且不残留。"""
     (tmp_path / ".env").write_text(
         "KNOWLEDGE_BASE_URL=http://leg/api/v1\n"
         "KNOWLEDGE_BASE_API_KEY=sk-leg\n"
@@ -138,3 +138,11 @@ def test_migrate_invalid_aliases_skipped(tmp_path):
     changed = kb_migrate.migrate()
     assert "SOURCES" in changed  # 来源迁移仍完成
     assert kb_config.get_aliases() == {}  # 非法别名降级为空
+    # 迁移产物不再残留非法 KB_ALIASES
+    written = (tmp_path / ".env").read_text(encoding="utf-8")
+    assert "not-json" not in written
+    assert "KB_ALIASES" not in written
+    # 再次读取不再喷 stderr 告警
+    capsys.readouterr()  # 清掉迁移期间的输出
+    assert kb_config.get_aliases() == {}
+    assert "不是合法 JSON" not in capsys.readouterr().err
