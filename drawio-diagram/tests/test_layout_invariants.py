@@ -73,4 +73,4 @@ def test_assert_width_from_text():
 
 def test_dispatch_raises_for_unimplemented_type():
     with pytest.raises(layout.LayoutError, match="no solver"):
-        layout.layout({"type": "sequence", "title": "x", "style": "enterprise"})
+        layout.layout({"type": "er", "title": "x", "style": "enterprise"})

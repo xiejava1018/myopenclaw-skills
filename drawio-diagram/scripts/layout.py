@@ -101,4 +101,7 @@ def layout(diagram: dict) -> dict:
     if t == "flowchart":
         from layout_flow import layout_flowchart  # lazy; created in Phase 2
         return layout_flowchart(diagram)
+    if t == "sequence":
+        from layout_seq import layout_sequence  # lazy; created in Phase 2
+        return layout_sequence(diagram)
     raise LayoutError(f"no solver yet for type {t!r}")
