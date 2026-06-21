@@ -64,3 +64,53 @@ def test_render_background_color_set_per_style():
     xml = render.render(geom)
     model = ET.fromstring(xml).find(".//mxGraphModel")
     assert model.get("background") == "#f8f6f3"
+
+
+def test_render_lifeline_decoration_is_dashed_free_edge():
+    geom = _geom()
+    geom["decorations"] = [
+        {"kind": "lifeline", "x": 130, "y": 140, "width": 0,
+         "height": 160, "label": "a"}
+    ]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    # a lifeline renders as an edge (not a vertex) with no arrowheads
+    edge_cells = [c for c in root.iter("mxCell") if c.get("edge") == "1"
+                  and "lifeline" in c.get("id", "")]
+    assert edge_cells, "lifeline must render as a free edge"
+    style = edge_cells[0].get("style", "")
+    assert "dashed=1" in style
+    assert "endArrow=none" in style
+    # free edge: no source/target vertex attrs
+    assert "source" not in edge_cells[0].attrib
+    assert "target" not in edge_cells[0].attrib
+
+
+def test_render_frame_decoration_is_labeled_rect():
+    geom = _geom()
+    geom["decorations"] = [
+        {"kind": "frame", "x": 50, "y": 50, "width": 300, "height": 120,
+         "label": "retry", "frame_kind": "loop"}
+    ]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    frame_cells = [c for c in root.iter("mxCell") if c.get("id", "").startswith("frame_")]
+    assert frame_cells, "frame must render as a vertex cell"
+    value = frame_cells[0].get("value", "")
+    assert "loop" in value and "retry" in value
+    assert "verticalAlign=top" in frame_cells[0].get("style", "")
+
+
+def test_render_free_edge_has_no_source_target():
+    geom = _geom()
+    # a sequence-style free message edge: no source/target, only points
+    geom["edges"] = [{"label": "ping", "flow": "data", "free": True,
+                      "points": [[60, 200], [300, 200]]}]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    edge_cells = [c for c in root.iter("mxCell") if c.get("edge") == "1"]
+    assert edge_cells
+    # the free edge carries no source/target vertex linkage
+    assert "source" not in edge_cells[0].attrib
+    assert "target" not in edge_cells[0].attrib
+    assert edge_cells[0].get("value") == "ping"
