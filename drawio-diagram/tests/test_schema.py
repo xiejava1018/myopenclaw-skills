@@ -216,3 +216,17 @@ def test_duplicate_state_id_rejected():
                                {"id": "s1", "label": "B"}]}
     with pytest.raises(SchemaError, match="duplicate"):
         schema.validate(bad)
+
+
+# --- Fix 5: layer-membership uniqueness ---
+
+def test_node_in_two_layers_rejected():
+    bad = {
+        **ARCH_OK,
+        "layers": [
+            {"id": "L0", "label": "a", "nodes": ["web"]},
+            {"id": "L1", "label": "b", "nodes": ["web"]},  # duplicate
+        ],
+    }
+    with pytest.raises(SchemaError, match="duplicate|layer"):
+        schema.validate(bad)

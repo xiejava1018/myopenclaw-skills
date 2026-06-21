@@ -15,7 +15,7 @@ def layout_architecture(d: dict) -> dict:
 
     y_cursor = layout.MARGIN
     max_right = 0
-    centers: dict[str, tuple] = {}  # id -> (cx, cy, x, y, w, h)
+    centers: dict[str, tuple] = {}  # id -> (cx, x, y, w, h) — 5-tuple, no cy
 
     for layer in d["layers"]:
         lids = layer["nodes"]
@@ -25,6 +25,13 @@ def layout_architecture(d: dict) -> dict:
             w = layout.snap(layout.text_width(nd["label"]))
             h = layout.snap(NODE_H)
             sized.append((nid, nd, w, h))
+        # An empty layer is a no-op: no nodes placed, no container emitted,
+        # and y_cursor does not advance — keeps the rest of the diagram aligned.
+        if not sized:
+            continue
+        # Outer snap is a no-op in v1 (all nodes share NODE_H, hence band_h is
+        # already snapped) but kept for robustness against future heterogeneous
+        # node heights.
         band_h = layout.snap(max((h for _, _, _, h in sized), default=NODE_H))
 
         x_cursor = layout.MARGIN
@@ -36,7 +43,7 @@ def layout_architecture(d: dict) -> dict:
                 "kind": nd.get("kind", "service"),
                 "x": nx, "y": ny, "width": w, "height": band_h,
             })
-            centers[nid] = (nx + w // 2, ny + band_h // 2, nx, ny, w, band_h)
+            centers[nid] = (nx + w // 2, nx, ny, w, band_h)
             x_cursor += w + layout.GUTTER_X
         layer_right = x_cursor - layout.GUTTER_X
         max_right = max(max_right, layer_right)
@@ -70,9 +77,11 @@ def layout_architecture(d: dict) -> dict:
 
 
 def _orthogonal(src, tgt) -> list[list[int]]:
-    """src/tgt = (cx, cy, x, y, w, h). Route bottom-of-src -> top-of-tgt with L-bend."""
-    sx, sy, sxx, syy, sw, sh = src
-    tx, ty, txx, tyy, tw, th = tgt
+    """src/tgt = (cx, x, y, w, h). Route bottom-of-src -> top-of-tgt with a
+    Z-bend (3-segment orthogonal route) when cx != tx, or a straight 2-point
+    line when aligned. cy was dropped from the tuple — never read."""
+    sx, sxx, syy, sw, sh = src
+    tx, txx, tyy, tw, th = tgt
     start = (sx, syy + sh)            # bottom-center of source
     mid_y = (syy + sh + tyy) // 2     # halfway into the gutter
     end = (tx, tyy)                   # top-center of target

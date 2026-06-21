@@ -95,10 +95,18 @@ def _validate_architecture(d):
     _require_list(d, "layers", "layer")
     _require_list(d, "edges", "edge")
     known = _validate_nodes(d)
+    seen_in_layers = set()
     for layer in d["layers"]:
         _require(layer, "id", "layer")
         _require(layer, "nodes", "layer")
         _check_node_refs(known, layer["nodes"], "layer")
+        for nid in layer["nodes"]:
+            if nid in seen_in_layers:
+                raise SchemaError(
+                    f"layer: node {nid!r} appears in multiple layers "
+                    "(a node can only belong to one layer)"
+                )
+            seen_in_layers.add(nid)
     for e in d["edges"]:
         _require(e, "source", "edge")
         _require(e, "target", "edge")
