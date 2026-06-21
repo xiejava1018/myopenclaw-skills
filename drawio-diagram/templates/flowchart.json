@@ -1,0 +1,17 @@
+{
+  "type": "flowchart",
+  "style": "enterprise",
+  "title": "示例流程图",
+  "direction": "TB",
+  "nodes": [
+    {"id": "start", "label": "开始",   "kind": "terminal"},
+    {"id": "check", "label": "通过?",  "kind": "decision"},
+    {"id": "ok",    "label": "处理",   "kind": "process"},
+    {"id": "end",   "label": "结束",   "kind": "terminal"}
+  ],
+  "edges": [
+    {"source": "start", "target": "check"},
+    {"source": "check", "target": "ok",  "label": "是"},
+    {"source": "ok",    "target": "end"}
+  ]
+}

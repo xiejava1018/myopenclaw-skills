@@ -1,0 +1,20 @@
+{
+  "type": "architecture",
+  "style": "enterprise",
+  "title": "示例架构图",
+  "direction": "tb",
+  "layers": [
+    {"id": "client",  "label": "客户端", "nodes": ["web"]},
+    {"id": "service", "label": "服务",   "nodes": ["api"]},
+    {"id": "data",    "label": "数据",   "nodes": ["db"]}
+  ],
+  "nodes": [
+    {"id": "web", "label": "Web 站点",  "kind": "client"},
+    {"id": "api", "label": "API 服务",  "kind": "service"},
+    {"id": "db",  "label": "数据库",    "kind": "database"}
+  ],
+  "edges": [
+    {"source": "web", "target": "api", "flow": "data"},
+    {"source": "api", "target": "db",  "flow": "data"}
+  ]
+}

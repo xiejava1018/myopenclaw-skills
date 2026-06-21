@@ -1,0 +1,24 @@
+{
+  "type": "er",
+  "style": "enterprise",
+  "title": "示例 ER 图",
+  "entities": [
+    {
+      "id": "user", "label": "User",
+      "attributes": [
+        {"name": "id",    "pk": true},
+        {"name": "email"}
+      ]
+    },
+    {
+      "id": "order", "label": "Order",
+      "attributes": [
+        {"name": "id",      "pk": true},
+        {"name": "user_id", "fk": true}
+      ]
+    }
+  ],
+  "relationships": [
+    {"from": "user", "to": "order", "card": "1:N"}
+  ]
+}

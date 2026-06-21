@@ -1,0 +1,16 @@
+{
+  "type": "sequence",
+  "style": "enterprise",
+  "title": "示例时序图",
+  "participants": [
+    {"id": "user", "label": "用户", "kind": "actor"},
+    {"id": "api",  "label": "API",  "kind": "service"},
+    {"id": "db",   "label": "DB",   "kind": "database"}
+  ],
+  "messages": [
+    {"from": "user", "to": "api", "label": "请求"},
+    {"from": "api",  "to": "db",  "label": "查询"},
+    {"from": "db",   "to": "api", "label": "结果", "dashed": true},
+    {"from": "api",  "to": "user", "label": "响应", "dashed": true}
+  ]
+}
