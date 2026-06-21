@@ -1,0 +1,107 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="结账下单时序" id="d0">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="740" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" value="用户" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="web" value="Web 前端" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="订单 API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="pay" value="支付服务" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="订单库" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="60" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="lifeline_user_100_136" value="" style="endArrow=none;startArrow=none;html=1;dashed=1;dashPattern=6 4;strokeColor=#404040;strokeWidth=1.5;endFill=0;startFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="100" y="136" as="sourcePoint" />
+            <mxPoint x="100" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lifeline_web_320_136" value="" style="endArrow=none;startArrow=none;html=1;dashed=1;dashPattern=6 4;strokeColor=#404040;strokeWidth=1.5;endFill=0;startFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="320" y="136" as="sourcePoint" />
+            <mxPoint x="320" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lifeline_api_540_136" value="" style="endArrow=none;startArrow=none;html=1;dashed=1;dashPattern=6 4;strokeColor=#404040;strokeWidth=1.5;endFill=0;startFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="540" y="136" as="sourcePoint" />
+            <mxPoint x="540" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lifeline_pay_760_136" value="" style="endArrow=none;startArrow=none;html=1;dashed=1;dashPattern=6 4;strokeColor=#404040;strokeWidth=1.5;endFill=0;startFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="136" as="sourcePoint" />
+            <mxPoint x="760" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lifeline_db_980_136" value="" style="endArrow=none;startArrow=none;html=1;dashed=1;dashPattern=6 4;strokeColor=#404040;strokeWidth=1.5;endFill=0;startFill=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="980" y="136" as="sourcePoint" />
+            <mxPoint x="980" y="680" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="frame_40_360_1020_80" value="loop: 支付重试" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#404040;dashed=1;dashPattern=8 4;verticalAlign=top;align=left;spacingTop=2;spacingLeft=6;fontColor=#1a1a1a;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="360" width="1020" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_free_0_0" value="点击结算" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="100" y="260" as="sourcePoint" />
+            <mxPoint x="320" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_free_1_1" value="POST /checkout" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="320" y="320" as="sourcePoint" />
+            <mxPoint x="540" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_free_2_2" value="发起支付" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="540" y="380" as="sourcePoint" />
+            <mxPoint x="760" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_free_3_3" value="支付成功" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#6b7280;strokeWidth=1.5;dashed=1;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="760" y="440" as="sourcePoint" />
+            <mxPoint x="540" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_free_4_4" value="写入订单" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="540" y="500" as="sourcePoint" />
+            <mxPoint x="980" y="500" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_free_5_5" value="ok" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#6b7280;strokeWidth=1.5;dashed=1;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="980" y="560" as="sourcePoint" />
+            <mxPoint x="540" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_free_6_6" value="200 OK" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#6b7280;strokeWidth=1.5;dashed=1;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="540" y="620" as="sourcePoint" />
+            <mxPoint x="320" y="620" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

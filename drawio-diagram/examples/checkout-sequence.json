@@ -1,0 +1,24 @@
+{
+  "type": "sequence",
+  "style": "enterprise",
+  "title": "结账下单时序",
+  "participants": [
+    {"id": "user", "label": "用户", "kind": "actor"},
+    {"id": "web", "label": "Web 前端", "kind": "client"},
+    {"id": "api", "label": "订单 API", "kind": "service"},
+    {"id": "pay", "label": "支付服务", "kind": "service"},
+    {"id": "db", "label": "订单库", "kind": "database"}
+  ],
+  "messages": [
+    {"from": "user", "to": "web", "label": "点击结算"},
+    {"from": "web", "to": "api", "label": "POST /checkout"},
+    {"from": "api", "to": "pay", "label": "发起支付"},
+    {"from": "pay", "to": "api", "label": "支付成功", "dashed": true},
+    {"from": "api", "to": "db", "label": "写入订单"},
+    {"from": "db", "to": "api", "label": "ok", "dashed": true},
+    {"from": "api", "to": "web", "label": "200 OK", "dashed": true}
+  ],
+  "frames": [
+    {"kind": "loop", "label": "支付重试", "from": 3, "to": 4}
+  ]
+}
