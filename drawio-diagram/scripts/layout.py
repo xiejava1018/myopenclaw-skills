@@ -98,4 +98,7 @@ def layout(diagram: dict) -> dict:
     if t == "architecture":
         from layout_arch import layout_architecture  # lazy; created in Phase 1b
         return layout_architecture(diagram)
+    if t == "flowchart":
+        from layout_flow import layout_flowchart  # lazy; created in Phase 2
+        return layout_flowchart(diagram)
     raise LayoutError(f"no solver yet for type {t!r}")
