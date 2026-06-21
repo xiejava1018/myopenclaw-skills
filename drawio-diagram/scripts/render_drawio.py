@@ -31,10 +31,10 @@ def render(geom: dict) -> str:
         _add_node(root, n, style_name)
     for d in geom.get("decorations", []):
         _add_node(root, d, style_name)
-    for e in geom["edges"]:
-        _add_edge(root, e, style_name)
+    for index, e in enumerate(geom["edges"]):
+        _add_edge(root, e, style_name, index)
 
-    _indent(mxfile)
+    ET.indent(mxfile, space="  ")
     return ET.tostring(mxfile, encoding="unicode")
 
 
@@ -68,9 +68,9 @@ def _add_container(root, c, style_name):
     })
 
 
-def _add_edge(root, e, style_name):
+def _add_edge(root, e, style_name, index):
     cell = ET.SubElement(root, "mxCell", {
-        "id": f"edge_{e['source']}_{e['target']}",
+        "id": f"edge_{e['source']}_{e['target']}_{index}",
         "value": e.get("label", ""),
         "style": styles.edge_style(e.get("flow", "data"), style_name),
         "edge": "1", "parent": _ROOT_PARENT_ID,
@@ -86,17 +86,3 @@ def _add_edge(root, e, style_name):
     ET.SubElement(geo, "mxPoint", {"x": str(sx), "y": str(sy), "as": "sourcePoint"})
     ex, ey = pts[-1]
     ET.SubElement(geo, "mxPoint", {"x": str(ex), "y": str(ey), "as": "targetPoint"})
-
-
-def _indent(elem, level=0):
-    """Pretty-print without lxml (stdlib only)."""
-    i = "\n" + level * "  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        for child in elem:
-            _indent(child, level + 1)
-        if not child.tail or not child.tail.strip():
-            child.tail = i
-    if level and (not elem.tail or not elem.tail.strip()):
-        elem.tail = i
