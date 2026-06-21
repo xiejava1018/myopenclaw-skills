@@ -72,6 +72,6 @@ def test_assert_width_from_text():
         layout.assert_width_from_text(narrow, {"a": "Hello"})
 
 def test_dispatch_raises_for_unimplemented_type():
+    # All 5 v1 diagram types now resolve; an unknown type still raises.
     with pytest.raises(layout.LayoutError, match="no solver"):
-        layout.layout({"type": "state", "title": "x", "style": "enterprise",
-                       "states": [], "transitions": [], "initial": ""})
+        layout.layout({"type": "unknown_type", "title": "x", "style": "enterprise"})

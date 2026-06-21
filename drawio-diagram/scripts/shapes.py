@@ -20,6 +20,7 @@ KIND_TO_SHAPE = {
     "io": "parallelogram",
     "start": "rounded_rect",
     "end": "rounded_rect",
+    "state": "rounded_rect",
 }
 DEFAULT_SHAPE = "rounded_rect"
 
