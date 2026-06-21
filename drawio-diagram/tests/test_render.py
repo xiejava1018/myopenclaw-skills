@@ -235,3 +235,64 @@ def test_render_node_without_provider_uses_kind_shape():
     xml = render.render(geom)
     assert "shape=cylinder3" in xml
     assert "mxgraph." not in xml
+
+
+# --- legend for multi-flow diagrams ---
+
+def test_legend_omitted_when_single_flow():
+    geom = _geom()
+    geom["edges"] = [{"source": "a", "target": "a", "label": "x",
+                      "flow": "data", "points": [[130, 140], [130, 300]]}]
+    xml = render.render(geom)
+    assert "legend_" not in xml  # no legend cell
+
+
+def test_legend_omitted_when_all_edges_share_flow():
+    geom = _geom()
+    geom["edges"] = [
+        {"source": "a", "target": "a", "flow": "control",
+         "points": [[130, 140], [130, 200]]},
+        {"source": "a", "target": "a", "flow": "control",
+         "points": [[130, 200], [130, 300]]},
+    ]
+    xml = render.render(geom)
+    assert "legend_" not in xml
+
+
+def test_legend_present_when_two_distinct_flows():
+    geom = _geom()
+    geom["edges"] = [
+        {"source": "a", "target": "a", "flow": "data",
+         "points": [[130, 140], [130, 200]]},
+        {"source": "a", "target": "a", "flow": "control",
+         "points": [[130, 200], [130, 300]]},
+    ]
+    xml = render.render(geom)
+    assert "legend_" in xml
+
+
+def test_legend_lists_each_flow_name():
+    geom = _geom()
+    geom["edges"] = [
+        {"source": "a", "target": "a", "flow": "data",
+         "points": [[130, 140], [130, 200]]},
+        {"source": "a", "target": "a", "flow": "async",
+         "points": [[130, 200], [130, 300]]},
+    ]
+    xml = render.render(geom)
+    assert "data" in xml
+    assert "async" in xml
+
+
+def test_legend_includes_flow_colors():
+    geom = _geom()
+    geom["edges"] = [
+        {"source": "a", "target": "a", "flow": "data",
+         "points": [[130, 140], [130, 200]]},
+        {"source": "a", "target": "a", "flow": "control",
+         "points": [[130, 200], [130, 300]]},
+    ]
+    xml = render.render(geom)
+    # data=blue, control=orange hexes appear in the legend swatches
+    assert "2563eb" in xml  # data blue
+    assert "ea580c" in xml  # control orange

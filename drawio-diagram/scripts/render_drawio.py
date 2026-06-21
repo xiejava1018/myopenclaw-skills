@@ -37,6 +37,8 @@ def render(geom: dict) -> str:
     for index, e in enumerate(geom["edges"]):
         _add_edge(root, e, style_name, index)
 
+    _add_legend_if_needed(root, geom, style_name)
+
     ET.indent(mxfile, space="  ")
     return ET.tostring(mxfile, encoding="unicode")
 
@@ -245,6 +247,64 @@ def _add_frame(root, d, style_name):
         "x": str(d["x"]), "y": str(d["y"]),
         "width": str(d["width"]), "height": str(d["height"]), "as": "geometry",
     })
+
+
+def distinct_flows(edges: list[dict]) -> list[str]:
+    """Distinct, insertion-ordered flow names actually used by the edges.
+    Empty/None flows are collapsed to a single 'default' bucket so a diagram
+    mixing unlabeled edges with one labeled flow still counts as 2 flows."""
+    seen: list[str] = []
+    for e in edges:
+        flow = e.get("flow") or "default"
+        if flow not in seen:
+            seen.append(flow)
+    return seen
+
+
+def _add_legend_if_needed(root, geom: dict, style_name: str):
+    """When a diagram uses 2+ distinct edge flows, emit a small legend box so
+    the colors are self-documenting. Placed top-right inside the canvas. No-op
+    for 0 or 1 flows. A decoration, not a semantic node — purely informational.
+    """
+    flows = distinct_flows(geom.get("edges", []))
+    if len(flows) < 2:
+        return
+    st = styles.STYLES[style_name]
+    label = _legend_html(flows, st)
+    style_str = (
+        "rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;"
+        f"strokeColor={st['stroke']};dashed=0;"
+        f"fontColor={st['font_color']};fontSize=11;align=left;verticalAlign=top;"
+        "spacing=6;"
+    )
+    cell = ET.SubElement(root, "mxCell", {
+        "id": "legend_flows", "value": label, "style": style_str,
+        "vertex": "1", "parent": _ROOT_PARENT_ID,
+    })
+    # Size: ~140 wide, 22px per flow row + header. Place top-right with margin.
+    row_h = 20
+    h = 28 + len(flows) * row_h
+    w = 150
+    cw = geom["canvas"]["width"]
+    x = max(0, cw - w - 10)
+    ET.SubElement(cell, "mxGeometry", {
+        "x": str(x), "y": "10",
+        "width": str(w), "height": str(h), "as": "geometry",
+    })
+
+
+def _legend_html(flows: list[str], st: dict) -> str:
+    """Build the legend's HTML label: a bold 'Flows' header, then one row per
+    flow = a colored bar swatch (using the edge color) + the flow name."""
+    rows = ['<div style="text-align:center"><b>Flows</b></div>']
+    for flow in flows:
+        color = styles.EDGE_COLORS.get(flow, styles.EDGE_COLORS["default"])
+        name = flow if flow != "default" else "default"
+        # inline-block colored bar + label, kept simple for draw.io's HTML renderer
+        bar = (f'<span style="display:inline-block;width:18px;height:6px;'
+               f'background:{color};margin-right:5px;vertical-align:middle;"></span>')
+        rows.append(f'<div>{bar}{_esc(name)}</div>')
+    return "".join(rows)
 
 
 def _add_edge(root, e, style_name, index):
