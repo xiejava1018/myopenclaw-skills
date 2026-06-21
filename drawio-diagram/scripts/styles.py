@@ -70,7 +70,7 @@ def _shape_prefix(shape: str) -> str:
     }.get(shape, "rounded=1;")
 
 
-def cell_style(kind, style_name, shape) -> str:
+def cell_style(kind: str, style_name: str, shape: str) -> str:
     st = STYLES[style_name]
     color = st["palette"].get(kind, st["palette"]["default"])
     parts = [
@@ -87,12 +87,12 @@ def cell_style(kind, style_name, shape) -> str:
     return "".join(parts)
 
 
-def canvas_style(style_name) -> dict:
+def canvas_style(style_name: str) -> dict:
     st = STYLES[style_name]
     return {"background": st["background"]}
 
 
-def edge_style(flow, style_name) -> str:
+def edge_style(flow: str, style_name: str) -> str:
     st = STYLES[style_name]
     color = EDGE_COLORS.get(flow, EDGE_COLORS["default"])
     width = "2" if flow == "data" else "1.5"

@@ -24,5 +24,5 @@ KIND_TO_SHAPE = {
 DEFAULT_SHAPE = "rounded_rect"
 
 
-def shape_for(kind) -> str:
+def shape_for(kind: str | None) -> str:
     return KIND_TO_SHAPE.get(kind or "", DEFAULT_SHAPE)

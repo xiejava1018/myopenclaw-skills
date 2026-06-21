@@ -33,11 +33,11 @@ def empty_geometry(type_: str, style: str, title: str) -> dict:
     }
 
 
-def _rects(nodes):
+def _rects(nodes: list[dict]) -> list[tuple[int, int, int, int]]:
     return [(n["x"], n["y"], n["width"], n["height"]) for n in nodes]
 
 
-def _overlaps(a, b, gap):
+def _overlaps(a: tuple[int, int, int, int], b: tuple[int, int, int, int], gap: int) -> bool:
     ax, ay, aw, ah = a
     bx, by, bw, bh = b
     return (ax < bx + bw + gap and ax + aw + gap > bx
@@ -57,6 +57,9 @@ def assert_no_overlap(geom: dict) -> None:
 def assert_in_bounds(geom: dict) -> None:
     w, h = geom["canvas"]["width"], geom["canvas"]["height"]
     for n in geom["nodes"]:
+        # +1 absorbs float→int rounding from snap() (current values are ints,
+        # but keeps the check robust against future fractional coordinates and
+        # avoids off-by-one false positives at the canvas boundary).
         if (n["x"] < 0 or n["y"] < 0
                 or n["x"] + n["width"] > w + 1
                 or n["y"] + n["height"] > h + 1):
@@ -70,7 +73,7 @@ def assert_snapped(geom: dict) -> None:
                 raise LayoutError(f"node {n['id']} {key}={n[key]} not snapped to {SNAP}")
 
 
-def assert_width_from_text(geom: dict, source_nodes: dict) -> None:
+def assert_width_from_text(geom: dict, source_nodes: dict[str, str]) -> None:
     """source_nodes: {id: label}. Verify each node width >= text_width(label)."""
     for n in geom["nodes"]:
         label = source_nodes.get(n["id"], "")
@@ -78,7 +81,7 @@ def assert_width_from_text(geom: dict, source_nodes: dict) -> None:
             raise LayoutError(f"node {n['id']} too narrow for label {label!r}")
 
 
-def assert_invariants(geom: dict, source_nodes: dict | None = None) -> None:
+def assert_invariants(geom: dict, source_nodes: dict[str, str] | None = None) -> None:
     """Full 5-invariant check (call after every solver)."""
     assert_no_overlap(geom)
     assert_in_bounds(geom)
