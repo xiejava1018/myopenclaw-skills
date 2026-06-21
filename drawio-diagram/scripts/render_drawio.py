@@ -28,7 +28,10 @@ def render(geom: dict) -> str:
     for c in geom.get("containers", []):
         _add_container(root, c, style_name)
     for n in geom["nodes"]:
-        _add_node(root, n, style_name)
+        if n.get("kind") == "er_entity" or "attributes" in n:
+            _add_entity(root, n, style_name)
+        else:
+            _add_node(root, n, style_name)
     for d in geom.get("decorations", []):
         _add_decoration(root, d, style_name)
     for index, e in enumerate(geom["edges"]):
@@ -49,6 +52,55 @@ def _add_node(root, n, style_name):
         "x": str(n["x"]), "y": str(n["y"]),
         "width": str(n["width"]), "height": str(n["height"]), "as": "geometry",
     })
+
+
+def _add_entity(root, n, style_name):
+    """Render an ER entity as a single rect cell with an HTML 3-compartment
+    label: bold centered name header, a horizontal rule, then one row per
+    attribute. PK is underlined (<u>), FK is italic (<i>); all rows left-aligned
+    so the column reads like an attribute list."""
+    st = styles.STYLES[style_name]
+    style_str = (
+        "rounded=0;whiteSpace=wrap;html=1;"
+        f"fillColor={st['palette'].get('default', '#ffffff')};"
+        f"strokeColor={st['stroke']};fontColor={st['font_color']};"
+        f"fontSize={st['font_size']};align=left;verticalAlign=top;"
+    )
+    label = _entity_html_label(n)
+    cell = ET.SubElement(root, "mxCell", {
+        "id": n["id"], "value": label, "style": style_str,
+        "vertex": "1", "parent": _ROOT_PARENT_ID,
+    })
+    ET.SubElement(cell, "mxGeometry", {
+        "x": str(n["x"]), "y": str(n["y"]),
+        "width": str(n["width"]), "height": str(n["height"]), "as": "geometry",
+    })
+
+
+def _entity_html_label(n: dict) -> str:
+    """Build the HTML label for an ER entity: <b>Name</b><hr>attr rows.
+
+    PK attributes are underlined, FK attributes italic. draw.io renders html=1
+    label content as HTML, so a single value string suffices."""
+    name = n.get("label", "")
+    parts = [f"<div style=\"text-align:center\"><b>{_esc(name)}</b></div>",
+             "<hr size=\"1\">"]
+    for a in n.get("attributes", []):
+        an = _esc(a.get("name", ""))
+        if a.get("pk"):
+            row = f"<u>{an}</u>"
+        elif a.get("fk"):
+            row = f"<i>{an}</i>"
+        else:
+            row = an
+        parts.append(f"<div>{row}</div>")
+    return "".join(parts)
+
+
+def _esc(s: str) -> str:
+    """XML-escape text going into an HTML label value."""
+    return (s.replace("&", "&amp;").replace("<", "&lt;")
+             .replace(">", "&gt;").replace('"', "&quot;"))
 
 
 def _add_container(root, c, style_name):

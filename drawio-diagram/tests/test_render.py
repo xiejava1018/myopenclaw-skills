@@ -114,3 +114,47 @@ def test_render_free_edge_has_no_source_target():
     assert "source" not in edge_cells[0].attrib
     assert "target" not in edge_cells[0].attrib
     assert edge_cells[0].get("value") == "ping"
+
+
+def test_render_er_entity_is_3compartment_html_label():
+    geom = _geom()
+    geom["type"] = "er"
+    geom["nodes"] = [{
+        "id": "user", "label": "User", "kind": "er_entity",
+        "x": 60, "y": 60, "width": 160, "height": 120,
+        "attributes": [
+            {"name": "id", "pk": True},
+            {"name": "email"},
+            {"name": "org_id", "fk": True},
+        ],
+    }]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    cell = next(c for c in root.iter("mxCell") if c.get("id") == "user")
+    value = cell.get("value", "")
+    # parsed value un-escapes the XML entities, so HTML tags are literal here
+    assert "<b>User</b>" in value
+    assert "<hr" in value
+    # PK underlined, FK italic, plain attribute plain
+    assert "<u>id</u>" in value
+    assert "email" in value
+    assert "<i>org_id</i>" in value
+    # entity renders as a rect (not a cylinder), html label enabled
+    style = cell.get("style", "")
+    assert "rounded=0" in style
+    assert "html=1" in style
+
+
+def test_render_er_entity_label_escapes_special_chars():
+    geom = _geom()
+    geom["type"] = "er"
+    geom["nodes"] = [{
+        "id": "e", "label": "A<B>", "kind": "er_entity",
+        "x": 60, "y": 60, "width": 140, "height": 80,
+        "attributes": [{"name": "x"}],
+    }]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    cell = next(c for c in root.iter("mxCell") if c.get("id") == "e")
+    # parsed value keeps the escaped entity text distinct from HTML markup
+    assert "<b>A&lt;B&gt;</b>" in cell.get("value", "")

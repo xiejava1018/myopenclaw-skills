@@ -104,4 +104,7 @@ def layout(diagram: dict) -> dict:
     if t == "sequence":
         from layout_seq import layout_sequence  # lazy; created in Phase 2
         return layout_sequence(diagram)
+    if t == "er":
+        from layout_er import layout_er  # lazy; created in Phase 2
+        return layout_er(diagram)
     raise LayoutError(f"no solver yet for type {t!r}")
