@@ -127,6 +127,10 @@ def _add_decoration(root, d, style_name):
       participant header — drawn as an edge because a line is not a box.
     frame:   a rect vertex with a label tab (verticalAlign=top), enclosing a
       range of messages. Falls back to _add_node for any unknown kind.
+    initial_pseudostate: a filled black disc (UML initial pseudo-state).
+    final_pseudostate:   a UML final pseudo-state (bullseye) — rendered as an
+      outer hollow ring with a smaller filled black disc on top. Two cells
+      because draw.io cannot express concentric circles in a single cell.
     """
     kind = d.get("kind")
     if kind == "lifeline":
@@ -135,7 +139,58 @@ def _add_decoration(root, d, style_name):
     if kind == "frame":
         _add_frame(root, d, style_name)
         return
+    if kind in ("initial_pseudostate", "final_pseudostate"):
+        _add_pseudostate(root, d)
+        return
     _add_node(root, d, style_name)
+
+
+def _add_pseudostate(root, d):
+    """Render a UML pseudo-state as small circle cell(s).
+
+    initial: a single filled black disc.
+    final:   a bullseye — an outer hollow ring (white fill, thick black stroke)
+             with an inner filled black disc drawn on top. The inner disc sits
+             centered with ~30% the bounding diameter, matching the standard
+             UML final-state glyph.
+    Both are non-interactive (no label, no wrapping) so they read as glyphs.
+    """
+    kind = d.get("kind")
+    x, y, w, h = d["x"], d["y"], d["width"], d["height"]
+    cx = x + w // 2
+    cy = y + h // 2
+    if kind == "initial_pseudostate":
+        style_str = "ellipse;fillColor=#000000;strokeColor=#000000;whiteSpace=wrap;html=1;"
+        cell = ET.SubElement(root, "mxCell", {
+            "id": f"init_{x}_{y}_{w}_{h}", "value": "", "style": style_str,
+            "vertex": "1", "parent": _ROOT_PARENT_ID,
+        })
+        ET.SubElement(cell, "mxGeometry", {
+            "x": str(x), "y": str(y),
+            "width": str(w), "height": str(h), "as": "geometry",
+        })
+        return
+    # final pseudo-state: outer hollow ring + inner filled disc (bullseye).
+    outer_style = ("ellipse;fillColor=#ffffff;strokeColor=#000000;"
+                   "strokeWidth=3;whiteSpace=wrap;html=1;")
+    outer = ET.SubElement(root, "mxCell", {
+        "id": f"final_outer_{x}_{y}_{w}_{h}", "value": "", "style": outer_style,
+        "vertex": "1", "parent": _ROOT_PARENT_ID,
+    })
+    ET.SubElement(outer, "mxGeometry", {
+        "x": str(x), "y": str(y),
+        "width": str(w), "height": str(h), "as": "geometry",
+    })
+    inner_d = max(8, (min(w, h) * 3) // 10)  # ~30% of bbox, floored at 8px
+    inner_style = "ellipse;fillColor=#000000;strokeColor=#000000;whiteSpace=wrap;html=1;"
+    inner = ET.SubElement(root, "mxCell", {
+        "id": f"final_inner_{x}_{y}_{w}_{h}", "value": "", "style": inner_style,
+        "vertex": "1", "parent": _ROOT_PARENT_ID,
+    })
+    ET.SubElement(inner, "mxGeometry", {
+        "x": str(cx - inner_d // 2), "y": str(cy - inner_d // 2),
+        "width": str(inner_d), "height": str(inner_d), "as": "geometry",
+    })
 
 
 def _add_lifeline(root, d, style_name):

@@ -158,3 +158,46 @@ def test_render_er_entity_label_escapes_special_chars():
     cell = next(c for c in root.iter("mxCell") if c.get("id") == "e")
     # parsed value keeps the escaped entity text distinct from HTML markup
     assert "<b>A&lt;B&gt;</b>" in cell.get("value", "")
+
+
+def test_render_initial_pseudostate_is_filled_black_disc():
+    geom = _geom()
+    geom["decorations"] = [
+        {"kind": "initial_pseudostate", "x": 20, "y": 90,
+         "width": 20, "height": 20, "label": ""}
+    ]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    cells = [c for c in root.iter("mxCell")
+             if c.get("id", "").startswith("init_")]
+    assert cells, "initial pseudo-state must render as a vertex cell"
+    style = cells[0].get("style", "")
+    assert "ellipse" in style
+    assert "fillColor=#000000" in style
+
+
+def test_render_final_pseudostate_is_bullseye_two_cells():
+    geom = _geom()
+    geom["decorations"] = [
+        {"kind": "final_pseudostate", "x": 500, "y": 88,
+         "width": 24, "height": 24, "label": ""}
+    ]
+    xml = render.render(geom)
+    root = ET.fromstring(xml)
+    outer = [c for c in root.iter("mxCell")
+             if c.get("id", "").startswith("final_outer_")]
+    inner = [c for c in root.iter("mxCell")
+             if c.get("id", "").startswith("final_inner_")]
+    assert outer and inner, "final pseudo-state must render as ring + disc"
+    outer_style = outer[0].get("style", "")
+    inner_style = inner[0].get("style", "")
+    # outer is a hollow ring (white fill, thick black stroke)
+    assert "ellipse" in outer_style
+    assert "fillColor=#ffffff" in outer_style
+    assert "strokeWidth=3" in outer_style
+    # inner is a filled black disc
+    assert "fillColor=#000000" in inner_style
+    # inner disc is smaller than the outer ring
+    def _w(c):
+        return int(c.find("mxGeometry").get("width"))
+    assert _w(inner[0]) < _w(outer[0])
