@@ -11,6 +11,7 @@
 | **[ishareread-article-writing](ishareread-article-writing/)** | 爱分享读书公众号文章写作全流程：选题 → 分析往期文案 → 搜索资料撰写 → 上传飞书云盘 → 写入文案库 → 更新选题状态 | 飞书选题库/文案库、飞书云盘、Coze | "写文章"、"新选题"、"飞书投稿" |
 | **[ishareread-publish](ishareread-publish/)** | 爱分享读书一键发布：从飞书多维表格取未发布文章 → 发布到 Hugo 网站（GitHub Pages）→ 同步微信公众号 → 回写发布地址 | 飞书多维表格、Hugo、GitHub Pages、Coze、微信公众平台 | "发布文章"、"微信公众号发布"、"同步飞书" |
 | **[scheme-writer](scheme-writer/)** | 编写方案：WeKnora 知识库语义检索 + 网络搜索，按主题生成结构化 Markdown 方案，可显式归档回知识库 | WeKnora 知识库（检索/列表/文档清单/上传）、DuckDuckGo | "写方案"、"知识库方案"、"方案归档" |
+| **[drawio-diagram](drawio-diagram/)** | 生成专业 draw.io 技术图：架构图/流程图/时序图/ER图/状态机，确定性布局引擎 + 5 条可测不变量保证专业质感，输出可编辑 `.drawio` 源 + PNG/SVG/PDF，支持 AWS/Azure/GCP 云图标 | 本机 draw.io CLI（无头导出） | "画架构图"、"流程图"、"时序图"、"ER图"、"状态机"、"draw.io 出图" |
 | **[webdav](webdav/)** | WebDAV 文件共享服务访问：上传、下载、删除、目录列出与创建、属性查询、连接测试 | WebDAV / NAS | "上传到 NAS"、"WebDAV 下载文件" |
 | **[network-scan](network-scan/)** | 内网资产扫描：扫描 192.168.0.0/24 网段，新发现 IP 标记"新发现"，离线主机标记"离线"，双源同步 | Supabase（主数据源）、飞书（展示/备份）、nmap | "资产巡检"、"扫描内网"、"网络安全扫描" |
 | **[duckduckgo-search](duckduckgo-search/)** | 免费 Web 搜索，无需 API Key | DuckDuckGo | "搜一下"、"查最新文档" |
@@ -22,6 +23,7 @@ myopenclaw-skills/
 ├── ishareread-article-writing/   # 各技能一个目录
 ├── ishareread-publish/
 ├── scheme-writer/
+├── drawio-diagram/               # draw.io 专业出图（架构/流程/时序/ER/状态机）
 ├── webdav/
 ├── network-scan/
 ├── duckduckgo-search/
