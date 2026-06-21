@@ -296,3 +296,49 @@ def test_legend_includes_flow_colors():
     # data=blue, control=orange hexes appear in the legend swatches
     assert "2563eb" in xml  # data blue
     assert "ea580c" in xml  # control orange
+
+
+def test_legend_appears_when_mixing_unlabeled_and_labeled_edges():
+    # distinct_flows collapses None/missing flow to a single 'default' bucket,
+    # so one unlabeled edge + one labeled edge = 2 flows = legend present.
+    geom = _geom()
+    geom["edges"] = [
+        {"source": "a", "target": "a", "points": [[130, 140], [130, 200]]},  # no flow
+        {"source": "a", "target": "a", "flow": "data",
+         "points": [[130, 200], [130, 300]]},
+    ]
+    xml = render.render(geom)
+    assert "legend_" in xml
+    assert "default" in xml  # the collapsed bucket name shows in the legend
+
+
+def test_cloud_node_gcp_namespace():
+    geom = _geom()
+    geom["nodes"] = [{
+        "id": "bq", "label": "BigQuery", "kind": "database",
+        "provider": "gcp", "service": "bigquery",
+        "x": 60, "y": 60, "width": 80, "height": 80,
+    }]
+    xml = render.render(geom)
+    assert "mxgraph.gcp.bigquery" in xml
+
+
+def test_cloud_node_works_on_flowchart_type():
+    # the provider+service render path is type-agnostic; a flowchart node
+    # carrying cloud fields must render the branded glyph too.
+    geom = _geom()
+    geom["type"] = "flowchart"
+    geom["nodes"] = [{
+        "id": "fn", "label": "Process", "kind": "process",
+        "provider": "aws", "service": "lambda",
+        "x": 60, "y": 60, "width": 80, "height": 80,
+    }]
+    xml = render.render(geom)
+    assert "mxgraph.aws4.lambda" in xml
+
+
+def test_distinct_flows_preserves_insertion_order():
+    # direct unit test of the helper: order follows first appearance, dedupes.
+    edges = [{"flow": "control"}, {"flow": "data"}, {"flow": "control"},
+             {"flow": None}, {"flow": "data"}]
+    assert render.distinct_flows(edges) == ["control", "data", "default"]

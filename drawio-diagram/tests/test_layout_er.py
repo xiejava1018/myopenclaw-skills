@@ -209,3 +209,45 @@ def test_self_relationship_routes_without_crossing():
         assert not layout_er._seg_hits_entity(
             x1, y1, x2, y2, rects, skip), \
             "self-relationship crosses non-endpoint entity"
+
+
+def _no_edge_crosses(geom):
+    """Shared oracle: no edge segment passes through a non-endpoint entity."""
+    rects = [(n["id"], n["x"], n["y"], n["width"], n["height"])
+             for n in geom["nodes"]]
+    for e in geom["edges"]:
+        skip = {e["source"], e["target"]}
+        for i in range(len(e["points"]) - 1):
+            x1, y1 = e["points"][i]
+            x2, y2 = e["points"][i + 1]
+            assert not layout_er._seg_hits_entity(
+                x1, y1, x2, y2, rects, skip), \
+                f"edge {e['source']}->{e['target']} crosses a non-endpoint entity"
+
+
+def test_dense_layout_routes_around_blocking_entities():
+    """Many entities across a 2-column grid force detour/corridor routing when
+    a relationship's endpoints sit with a third entity between them. The
+    no-crossing invariant must still hold — exercising the fallback branches."""
+    d = {
+        "type": "er", "style": "enterprise", "title": "dense",
+        "entities": [
+            {"id": f"e{i}", "label": f"Entity{i}",
+             "attributes": [{"name": "id", "pk": True},
+                            {"name": "name"},
+                            {"name": "ref"}]} for i in range(6)
+        ],
+        # Spanning relationships: e0->e5 and e1->e4 cross the grid diagonally,
+        # likely requiring a detour lane or corridor rather than a direct line.
+        "relationships": [
+            {"from": "e0", "to": "e5", "card": "N:M"},
+            {"from": "e1", "to": "e4", "card": "N:M"},
+            {"from": "e2", "to": "e3", "card": "1:1"},
+            {"from": "e0", "to": "e3", "card": "1:N"},
+        ],
+    }
+    geom = layout_er.layout_er(d)
+    layout.assert_invariants(geom)
+    _no_edge_crosses(geom)
+    # all 4 relationships materialized as edges
+    assert len(geom["edges"]) == 4
