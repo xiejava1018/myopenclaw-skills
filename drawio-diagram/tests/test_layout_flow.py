@@ -151,6 +151,77 @@ def test_isolated_node_lands_at_rank_zero():
     assert geom["nodes"][0]["y"] == layout.MARGIN
 
 
+def _count_edge_node_crossings(geom: dict, step: int = 2, inset: int = 2) -> int:
+    """Test oracle: sample points along every edge polyline (excluding the two
+    endpoint nodes of that edge) and count how many fall strictly inside a
+    non-endpoint node's bounding box (with a small inset so merely touching an
+    endpoint node's border does not count).
+
+    A real "edge crosses a node interior" violation yields >= 1 here. Uses
+    sampling along each axis-aligned segment so vertical crossings are caught
+    as readily as horizontal ones.
+    """
+    node_by_id = {n["id"]: n for n in geom["nodes"]}
+    crossings = 0
+    for e in geom["edges"]:
+        skip = {e["source"], e["target"]}
+        pts = e["points"]
+        for i in range(len(pts) - 1):
+            x1, y1 = pts[i]
+            x2, y2 = pts[i + 1]
+            length = max(abs(x2 - x1), abs(y2 - y1))
+            if length == 0:
+                continue
+            n_steps = max(1, int(length // step))
+            for s in range(n_steps + 1):
+                t = s / n_steps
+                px = x1 + (x2 - x1) * t
+                py = y1 + (y2 - y1) * t
+                for nid, n in node_by_id.items():
+                    if nid in skip:
+                        continue
+                    nx, ny, nw, nh = n["x"], n["y"], n["width"], n["height"]
+                    if (nx + inset < px < nx + nw - inset
+                            and ny + inset < py < ny + nh - inset):
+                        crossings += 1
+    return crossings
+
+
+def test_side_routed_edge_does_not_cross_rank_sibling():
+    """Regression: a back/side edge whose target shares its rank with a
+    rightward sibling must not have its enter-segment cut through that sibling.
+
+    The bug: _orthogonal_side routed the final horizontal enter-segment at
+    tgt_mid_y (the vertical CENTER of the target's rank) across the full width
+    from the right corridor to the target's right edge. When a sibling node
+    sits between target and corridor at the same rank, that enter-segment
+    crosses straight through the sibling's interior.
+
+    Fixture: 'a' and 'b' share rank 1 (both reached from 'start'); 'c' is a
+    rank-2 descendant of 'a'. The back edge c->a makes 'a' a side-routed
+    target, and 'b' sits to its right — exactly the trigger.
+    """
+    d = {
+        "type": "flowchart", "style": "enterprise", "title": "side-cross",
+        "nodes": [
+            {"id": "start", "label": "Start", "kind": "terminal"},
+            {"id": "a", "label": "Step A", "kind": "process"},   # rank 1 (back-edge target)
+            {"id": "b", "label": "Step B", "kind": "process"},   # rank 1, rightward sibling of 'a'
+            {"id": "c", "label": "Step C", "kind": "process"},   # rank 2, descendant of 'a'
+        ],
+        "edges": [
+            {"source": "start", "target": "a"},
+            {"source": "start", "target": "b"},   # forces 'b' into 'a's rank, to its right
+            {"source": "a", "target": "c"},
+            {"source": "c", "target": "a"},       # back edge → 'a' side-routed, sibling 'b' crossed
+        ],
+    }
+    geom = layout_flow.layout_flowchart(d)
+    # Verify NO edge segment passes through a non-endpoint node's interior.
+    crossings = _count_edge_node_crossings(geom)
+    assert crossings == 0, f"edge crosses a node interior: {crossings} crossing(s)"
+
+
 def test_flow_defaults_to_control():
     """Flowchart edges default to 'control' flow when flow field absent."""
     geom = layout_flow.layout_flowchart(_flow())

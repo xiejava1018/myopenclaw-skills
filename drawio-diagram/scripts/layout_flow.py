@@ -444,39 +444,156 @@ def _orthogonal_side(
     tgt_id: str,
 ) -> list[tuple[int, int]]:
     """Back / same-rank / blocked-forward edge. Exit source right-center, drop
-    to the nearest clear horizontal gutter lane, run out to the right corridor,
-    down/up to the target's lane, and into the target's right-center. All
-    horizontal travel happens in empty gutters or the right corridor, so the
-    route never crosses a node body.
+    to a clear horizontal gutter lane, run out to the right corridor, then enter
+    the target. All horizontal travel happens in empty gutters or the right
+    corridor, and the whole route is collision-checked, so the edge never
+    crosses a node body — including any sibling that shares the target's rank.
 
     src/tgt = (cx, x, y, w, h). Returns tuples."""
     corridor = layout.snap(canvas_w - layout.MARGIN // 2)
-    _, sxx, syy, sw, sh = src
-    _, txx, tyy, tw, th = tgt
+    scx, sxx, syy, sw, sh = src
+    tcx, txx, tyy, tw, th = tgt
     src_mid_y = syy + sh // 2
     tgt_mid_y = tyy + th // 2
+    skip = {src_id, tgt_id}
+    start = (sxx + sw, src_mid_y)
 
     # Find a horizontal lane that is clear of every node (excluding endpoints)
     # for the full span [sxx+sw .. corridor]. Prefer a gutter between the two
-    # ranks; fall back to the source/target mid-y if already clear.
-    candidates = []
+    # ranks; fall back to the source mid-y if already clear.
+    lane_candidates = []
     if src_mid_y != tgt_mid_y:
         lo, hi = (src_mid_y, tgt_mid_y)
-        candidates = [g for g in gutter_ys if lo < g < hi or hi < g < lo]
-    candidates = candidates + [src_mid_y]
-    skip = {src_id, tgt_id}
+        lane_candidates = [g for g in gutter_ys if lo < g < hi or hi < g < lo]
+    lane_candidates = lane_candidates + [src_mid_y]
     lane = src_mid_y
-    for cand in candidates:
+    for cand in lane_candidates:
         if not _seg_hits_node(sxx + sw, cand, corridor, cand, rects, skip):
             lane = cand
             break
 
-    start = (sxx + sw, src_mid_y)
-    enter = (txx + tw, tgt_mid_y)  # right-center of target
+    # Build candidate routes in preference order and return the FIRST whose
+    # every segment is collision-free. The rank-center enter-segment (at
+    # tgt_mid_y) cuts through any rightward sibling sharing the target's rank,
+    # so the preferred route may fail the whole-route check; we then fall back
+    # to entering the target from its top-center (via the gutter above the
+    # target's rank) or bottom-center (via the gutter below), neither of which
+    # crosses a sibling.
+    candidates = _side_route_candidates(
+        start, corridor, lane, src_mid_y, tgt_mid_y,
+        scx, tcx, txx, tyy, tw, th, gutter_ys,
+    )
+    for pts in candidates:
+        if _route_clear(pts, rects, skip):
+            return pts
+    # Every candidate was blocked: return the top-center-entry route as the
+    # best-effort deterministic fallback (its gutter entry is empty by
+    # construction, so it is the safest default).
+    return candidates[-1]
+
+
+def _side_route_candidates(
+    start: tuple[int, int],
+    corridor: int,
+    lane: int,
+    src_mid_y: int,
+    tgt_mid_y: int,
+    scx: int,
+    tcx: int,
+    txx: int,
+    tyy: int,
+    tw: int,
+    th: int,
+    gutter_ys: list[int],
+) -> list[list[tuple[int, int]]]:
+    """Ordered list of candidate side-routes, each ending inside the target.
+    Preference:
+      1. Enter the target's right-center at tgt_mid_y (original route; crosses a
+         rightward same-rank sibling if one exists).
+      2. Enter the target's top-center from the gutter ABOVE its rank (vertical
+         drop through the target's own top edge — no sibling crossed).
+      3. Enter the target's bottom-center from the gutter BELOW its rank.
+    Each candidate travels out to the corridor and back; only the final
+    approach differs."""
+    t_right = (txx + tw, tgt_mid_y)
+    t_top = (tcx, tyy)
+    t_bottom = (tcx, tyy + th)
+    routes: list[list[tuple[int, int]]] = []
+
+    # 1. Rank-center right-center entry (original behavior).
     if lane == src_mid_y and lane == tgt_mid_y:
-        return [start, (corridor, lane), enter]
-    if lane == src_mid_y:
-        # exit lane clear, drop to target mid along corridor then enter
-        return [start, (corridor, lane), (corridor, tgt_mid_y), enter]
-    pts = [start, (sxx + sw, lane), (corridor, lane), (corridor, tgt_mid_y), enter]
-    return pts
+        routes.append([start, (corridor, lane), t_right])
+    elif lane == src_mid_y:
+        routes.append([start, (corridor, lane), (corridor, tgt_mid_y), t_right])
+    else:
+        routes.append(
+            [start, (start[0], lane), (corridor, lane),
+             (corridor, tgt_mid_y), t_right]
+        )
+
+    # 2. Top-center entry: run the corridor down/up to a gutter lane just above
+    #    the target's rank, across to the target's center-x, then down into the
+    #    target's top-center.
+    top_lane = _nearest_gutter(gutter_ys, tyy, below=False)
+    if top_lane is not None and top_lane != lane:
+        routes.append([
+            start, (start[0], lane), (corridor, lane),
+            (corridor, top_lane), (tcx, top_lane), t_top,
+        ])
+    elif top_lane is not None:
+        routes.append([
+            start, (corridor, lane), (corridor, top_lane),
+            (tcx, top_lane), t_top,
+        ])
+
+    # 3. Bottom-center entry: gutter lane just below the target's rank.
+    bot_lane = _nearest_gutter(gutter_ys, tyy + th, below=True)
+    if bot_lane is not None and bot_lane != lane:
+        routes.append([
+            start, (start[0], lane), (corridor, lane),
+            (corridor, bot_lane), (tcx, bot_lane), t_bottom,
+        ])
+    elif bot_lane is not None:
+        routes.append([
+            start, (corridor, lane), (corridor, bot_lane),
+            (tcx, bot_lane), t_bottom,
+        ])
+
+    # Guarantee at least the rank-center route exists.
+    if not routes:
+        routes.append([start, (corridor, lane), t_right])
+    return routes
+
+
+def _nearest_gutter(
+    gutter_ys: list[int], rank_edge_y: int, below: bool
+) -> int | None:
+    """Gutter lane closest to a rank's top (below=False) or bottom (below=True)
+    edge. Gutters are between consecutive ranks; for the top of a rank that is
+    the gutter immediately above it, for the bottom it is the gutter
+    immediately below it. Returns None if no suitable gutter exists (e.g. the
+    target sits in the first/last rank)."""
+    if not gutter_ys:
+        return None
+    if below:
+        # gutter strictly lower than the rank's bottom edge
+        lower = [g for g in gutter_ys if g > rank_edge_y]
+        return min(lower) if lower else None
+    # above: gutter strictly higher than the rank's top edge
+    higher = [g for g in gutter_ys if g < rank_edge_y]
+    return max(higher) if higher else None
+
+
+def _route_clear(
+    pts: list[tuple[int, int]],
+    rects: list[tuple[str, int, int, int, int]],
+    skip: set[str],
+) -> bool:
+    """True if NO segment of the polyline hits a node box not in `skip`.
+    Segments are axis-aligned, so _seg_hits_node handles each directly."""
+    for i in range(len(pts) - 1):
+        x1, y1 = pts[i]
+        x2, y2 = pts[i + 1]
+        if _seg_hits_node(x1, y1, x2, y2, rects, skip):
+            return False
+    return True
