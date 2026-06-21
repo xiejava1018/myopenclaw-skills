@@ -35,3 +35,22 @@ def check_status() -> dict:
         # Always carry install guidance; callers surface it only when needed.
         "install_hint": INSTALL_HINT,
     }
+
+
+class ExportError(Exception):
+    pass
+
+
+def export_image(drawio_path: str, out_path: str, fmt: str = "png",
+                 scale: int = 2, border: int = 20) -> None:
+    if not drawio_available():
+        raise ExportError(INSTALL_HINT)
+    cmd = [
+        DRAWIO_CMD, "-x", "-f", fmt, "-o", out_path, drawio_path,
+        "--scale", str(scale), "--border", str(border),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    if result.returncode != 0:
+        raise ExportError(
+            f"drawio export failed (exit {result.returncode}): {result.stderr.strip()}"
+        )
