@@ -77,6 +77,25 @@ def test_dispatch_in_layout_now_works():
     assert {n["id"] for n in geom["nodes"]} == {"web", "app", "api", "db"}
 
 
+def test_node_width_snapped_up_for_non_grid_text_width():
+    """Regression: a label whose text_width is not a multiple of SNAP must get a
+    box snapped UP to the next grid line (text_width 144 -> 160), never rounded
+    down, so the box always holds the label. Caught by assert_width_from_text."""
+    d = {
+        "type": "architecture", "style": "enterprise", "title": "T", "direction": "tb",
+        "layers": [{"id": "L0", "label": "x", "nodes": ["rag"]}],
+        "nodes": [{"id": "rag", "label": "RAG Orchestrator", "kind": "service"}],
+        "edges": [],
+    }
+    # sanity: this label's text_width is deliberately not a multiple of SNAP
+    tw = layout.text_width("RAG Orchestrator")
+    assert tw % layout.SNAP != 0, "fixture label must have non-grid text_width"
+    geom = layout_arch.layout_architecture(d)
+    n = geom["nodes"][0]
+    assert n["width"] >= tw, "node too narrow for label"
+    assert n["width"] % layout.SNAP == 0, "node width must be grid-aligned"
+
+
 def test_non_tb_direction_raises():
     bad = _diagram()
     bad["direction"] = "lr"
