@@ -1,0 +1,118 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="订单状态机" id="d0">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="520" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pending" value="待支付" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="paid" value="已支付" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="120" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="cancelled" value="已取消" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="320" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="shipped" value="已发货" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="220" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="done" value="已完成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="220" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="init_0_240_20_20" value="" style="ellipse;fillColor=#000000;strokeColor=#000000;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="0" y="240" width="20" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="final_outer_900_240_24_24" value="" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="900" y="240" width="24" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="final_inner_900_240_24_24" value="" style="ellipse;fillColor=#000000;strokeColor=#000000;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="908" y="248" width="8" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="final_outer_460_340_24_24" value="" style="ellipse;fillColor=#ffffff;strokeColor=#000000;strokeWidth=3;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="340" width="24" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="final_inner_460_340_24_24" value="" style="ellipse;fillColor=#000000;strokeColor=#000000;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="468" y="348" width="8" height="8" as="geometry" />
+        </mxCell>
+        <mxCell id="edge__pending_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" target="pending">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="20" y="260" as="sourcePoint" />
+            <mxPoint x="60" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_done__1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="done">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="860" y="260" as="sourcePoint" />
+            <mxPoint x="900" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_cancelled__2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="cancelled">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="420" y="360" as="sourcePoint" />
+            <mxPoint x="460" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_pending_paid_3" value="支付成功" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="pending" target="paid">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="260" />
+              <mxPoint x="240" y="160" />
+            </Array>
+            <mxPoint x="200" y="260" as="sourcePoint" />
+            <mxPoint x="280" y="160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_paid_shipped_4" value="发货" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="paid" target="shipped">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="460" y="160" />
+              <mxPoint x="460" y="260" />
+            </Array>
+            <mxPoint x="420" y="160" as="sourcePoint" />
+            <mxPoint x="500" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_shipped_done_5" value="签收确认" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="shipped" target="done">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="640" y="260" as="sourcePoint" />
+            <mxPoint x="720" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_pending_cancelled_6" value="用户取消" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="pending" target="cancelled">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="240" y="260" />
+              <mxPoint x="240" y="360" />
+            </Array>
+            <mxPoint x="200" y="260" as="sourcePoint" />
+            <mxPoint x="280" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_paid_cancelled_7" value="申请退款 [未发货]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="paid" target="cancelled">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="160" />
+              <mxPoint x="350" y="360" />
+            </Array>
+            <mxPoint x="420" y="160" as="sourcePoint" />
+            <mxPoint x="280" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_shipped_shipped_8" value="运输中转" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="shipped" target="shipped">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="535" y="160" />
+              <mxPoint x="605" y="160" />
+            </Array>
+            <mxPoint x="535" y="220" as="sourcePoint" />
+            <mxPoint x="605" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
