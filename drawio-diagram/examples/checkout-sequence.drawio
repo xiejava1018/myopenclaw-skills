@@ -101,6 +101,9 @@
             <mxPoint x="320" y="620" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="legend_flows" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;Flows&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;display:inline-block;width:18px;height:6px;background:#2563eb;margin-right:5px;vertical-align:middle;&quot;&gt;&lt;/span&gt;data&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;display:inline-block;width:18px;height:6px;background:#6b7280;margin-right:5px;vertical-align:middle;&quot;&gt;&lt;/span&gt;async&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#404040;dashed=0;fontColor=#1a1a1a;fontSize=11;align=left;verticalAlign=top;spacing=6;" vertex="1" parent="1">
+          <mxGeometry x="960" y="10" width="150" height="68" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
