@@ -1,0 +1,72 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="电商平台 ER 模型" id="d0">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="820" pageHeight="560" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="user" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;User&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;&gt;&lt;div&gt;&lt;u&gt;id&lt;/u&gt;&lt;/div&gt;&lt;div&gt;email&lt;/div&gt;&lt;div&gt;name&lt;/div&gt;&lt;div&gt;created_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="180" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="order" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;Order&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;&gt;&lt;div&gt;&lt;u&gt;id&lt;/u&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;user_id&lt;/i&gt;&lt;/div&gt;&lt;div&gt;status&lt;/div&gt;&lt;div&gt;total&lt;/div&gt;&lt;div&gt;created_at&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="320" y="60" width="180" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="order_item" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;OrderItem&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;&gt;&lt;div&gt;&lt;u&gt;id&lt;/u&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;order_id&lt;/i&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;product_id&lt;/i&gt;&lt;/div&gt;&lt;div&gt;qty&lt;/div&gt;&lt;div&gt;price&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="580" y="60" width="180" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="product" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;Product&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;&gt;&lt;div&gt;&lt;u&gt;id&lt;/u&gt;&lt;/div&gt;&lt;div&gt;&lt;i&gt;category_id&lt;/i&gt;&lt;/div&gt;&lt;div&gt;name&lt;/div&gt;&lt;div&gt;price&lt;/div&gt;&lt;div&gt;stock&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="180" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="category" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b&gt;Category&lt;/b&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot;&gt;&lt;div&gt;&lt;u&gt;id&lt;/u&gt;&lt;/div&gt;&lt;div&gt;name&lt;/div&gt;&lt;div&gt;&lt;i&gt;parent_id&lt;/i&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;align=left;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="320" y="340" width="180" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user_order_0" value="places (1:N)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="user" target="order">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="130" />
+              <mxPoint x="280" y="140" />
+            </Array>
+            <mxPoint x="240" y="130" as="sourcePoint" />
+            <mxPoint x="320" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_order_order_item_1" value="contains (1:N)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="order" target="order_item">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="500" y="140" as="sourcePoint" />
+            <mxPoint x="580" y="140" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_product_order_item_2" value="in (1:N)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="product" target="order_item">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="340" />
+              <mxPoint x="410" y="220" />
+            </Array>
+            <mxPoint x="150" y="340" as="sourcePoint" />
+            <mxPoint x="670" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_category_product_3" value="has (1:N)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="category" target="product">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="400" />
+              <mxPoint x="280" y="420" />
+            </Array>
+            <mxPoint x="500" y="400" as="sourcePoint" />
+            <mxPoint x="60" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_category_category_4" value="parent of (1:N)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="category" target="category">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="540" y="380" />
+              <mxPoint x="540" y="420" />
+            </Array>
+            <mxPoint x="500" y="380" as="sourcePoint" />
+            <mxPoint x="500" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,66 @@
+{
+  "type": "er",
+  "style": "enterprise",
+  "title": "电商平台 ER 模型",
+  "entities": [
+    {
+      "id": "user",
+      "label": "User",
+      "attributes": [
+        {"name": "id", "pk": true},
+        {"name": "email"},
+        {"name": "name"},
+        {"name": "created_at"}
+      ]
+    },
+    {
+      "id": "order",
+      "label": "Order",
+      "attributes": [
+        {"name": "id", "pk": true},
+        {"name": "user_id", "fk": true},
+        {"name": "status"},
+        {"name": "total"},
+        {"name": "created_at"}
+      ]
+    },
+    {
+      "id": "order_item",
+      "label": "OrderItem",
+      "attributes": [
+        {"name": "id", "pk": true},
+        {"name": "order_id", "fk": true},
+        {"name": "product_id", "fk": true},
+        {"name": "qty"},
+        {"name": "price"}
+      ]
+    },
+    {
+      "id": "product",
+      "label": "Product",
+      "attributes": [
+        {"name": "id", "pk": true},
+        {"name": "category_id", "fk": true},
+        {"name": "name"},
+        {"name": "price"},
+        {"name": "stock"}
+      ]
+    },
+    {
+      "id": "category",
+      "label": "Category",
+      "attributes": [
+        {"name": "id", "pk": true},
+        {"name": "name"},
+        {"name": "parent_id", "fk": true}
+      ]
+    }
+  ],
+  "relationships": [
+    {"from": "user", "to": "order", "card": "1:N", "label": "places"},
+    {"from": "order", "to": "order_item", "card": "1:N", "label": "contains"},
+    {"from": "product", "to": "order_item", "card": "1:N", "label": "in"},
+    {"from": "category", "to": "product", "card": "1:N", "label": "has"},
+    {"from": "category", "to": "category", "card": "1:N", "label": "parent of"}
+  ]
+}
