@@ -210,17 +210,21 @@ def _route_relationship(
     s: dict, t: dict,
     rects: list[tuple[str, int, int, int, int]],
     canvas_w: int,
+    canvas_h: int = 0,
 ) -> list[tuple[int, int]]:
     """Pick a collision-free orthogonal route between two entity boxes.
 
-    Strategy:
+    Strategy (each candidate is whole-route collision-checked before use):
       1. Self-relationship: loop out the right side and back in.
-      2. Direct side-pair candidates (right->left etc.): straight when the
-         anchor pair aligns, else Z-bend at the midpoint. Take the first clear.
-      3. If all direct routes blocked: exit both boxes to a right corridor past
-         the canvas edge (empty by construction) and connect there.
-    Every candidate is whole-route collision-checked, so no edge ever crosses a
-    non-endpoint entity interior."""
+      2. Direct side-pair candidates (right->left, left->right, bottom->top,
+         top->bottom): straight when aligned, else Z-bend. Take the first clear.
+      3. Detour candidates: if both boxes are blocked head-on (e.g. same row with
+         a box between them, or same column), exit to a horizontal lane in the
+         empty gutter BELOW or ABOVE the row band and re-enter. The lane y is a
+         snap multiple chosen in the empty margin band outside the boxes' shared
+         vertical span, guaranteed not to intersect any entity in that band.
+      4. Last resort: right corridor past the canvas edge (empty by construction).
+    No edge ever crosses a non-endpoint entity interior."""
     skip = {src_id, tgt_id}
 
     if src_id == tgt_id:
@@ -231,7 +235,12 @@ def _route_relationship(
         if _route_clear(pts, rects, skip):
             return pts
 
-    # All direct candidates blocked -> corridor route past the right edge.
+    # Detour via a horizontal lane below/above the shared vertical span.
+    detour = _detour_route(s, t, rects, skip)
+    if detour is not None:
+        return detour
+
+    # All direct + detour candidates blocked -> right corridor (empty by design).
     corridor = layout.snap(canvas_w + layout.MARGIN // 2)
     sp = _side_points(s)
     tp = _side_points(t)
@@ -239,11 +248,44 @@ def _route_relationship(
     t_end = tp["right"]
     pts = [s_start, (corridor, s_start[1]),
            (corridor, t_end[1]), t_end]
-    # corridor is empty by construction; still verify defensively.
     if _route_clear(pts, rects, skip):
         return pts
-    # Absolute fallback (should not happen with a clean grid): straight line.
     return [s_start, t_end]
+
+
+def _detour_route(
+    s: dict, t: dict,
+    rects: list[tuple[str, int, int, int, int]],
+    skip: set[str],
+) -> list[tuple[int, int]] | None:
+    """Route via an empty horizontal lane below or above the two boxes' shared
+    vertical band. Tries (in order): lane below both boxes, lane above both.
+    Each lane y is the snap of (band_bottom + GUTTER/2) or (band_top - GUTTER/2)
+    — empty by construction because it sits in the inter-row gutter / margin.
+    Returns the first clear route, or None if neither works."""
+    sp = _side_points(s)
+    tp = _side_points(t)
+    band_bottom = max(s["y"] + s["h"], t["y"] + t["h"])
+    band_top = min(s["y"], t["y"])
+
+    # Lane below the band (snap into the gutter/margin beneath both boxes).
+    below_y = layout.snap(band_bottom + layout.GUTTER_Y // 2)
+    # Lane above the band.
+    above_y = layout.snap(band_top - layout.GUTTER_Y // 2)
+
+    for lane_y, s_anchor, t_anchor in (
+        (below_y, sp["bottom"], tp["bottom"]),
+        (below_y, sp["right"], tp["left"]),
+        (above_y, sp["top"], tp["top"]),
+        (above_y, sp["right"], tp["left"]),
+    ):
+        if lane_y <= 0:
+            continue
+        pts = [s_anchor, (s_anchor[0], lane_y),
+               (t_anchor[0], lane_y), t_anchor]
+        if _route_clear(pts, rects, skip):
+            return pts
+    return None
 
 
 def _z_route(
