@@ -37,12 +37,20 @@ STYLES = {
             "cache": "#efe7d6", "vectorstore": "#dcc9a8", "default": "#ece3d2",
         },
     },
+    # OpenAI-brand high-contrast: black ink on white fill. A pure-black fill
+    # would put #000 text on #000 boxes (unreadable), so every fill is white
+    # and only stroke + font carry the black. This yields the clean
+    # black-on-white editorial look the style is named for.
     "openai": {
         "background": "#ffffff", "shadow": False, "rounded": True, "font_size": 14,
         "font_color": "#000000", "stroke": "#000000",
         "palette": {
-            "client": "#000000", "service": "#000000", "database": "#000000",
-            "cache": "#000000", "vectorstore": "#000000", "default": "#ffffff",
+            "client": "#ffffff", "service": "#ffffff", "database": "#ffffff",
+            "cache": "#ffffff", "vectorstore": "#ffffff", "llm": "#ffffff",
+            "api": "#ffffff", "queue": "#ffffff", "external": "#ffffff",
+            "cloud": "#ffffff", "actor": "#ffffff", "process": "#ffffff",
+            "decision": "#ffffff", "terminal": "#ffffff", "io": "#ffffff",
+            "browser": "#ffffff", "stream": "#ffffff", "default": "#ffffff",
         },
     },
 }
