@@ -96,6 +96,43 @@ def test_node_width_snapped_up_for_non_grid_text_width():
     assert n["width"] % layout.SNAP == 0, "node width must be grid-aligned"
 
 
+def test_direction_uppercase_tb_accepted():
+    """direction is case-insensitive (doc shows TB; solver must accept it).
+
+    The doc's examples use "TB"/"LR" but the solver historically only accepted
+    the lowercase "tb". After Gap 1, any casing of "tb" is accepted and
+    normalized; only non-tb values raise.
+    """
+    d = {
+        "type": "architecture", "style": "enterprise", "title": "T", "direction": "TB",
+        "layers": [{"id": "L0", "label": "x", "nodes": ["n"]}],
+        "nodes": [{"id": "n", "label": "Node", "kind": "service"}],
+        "edges": [],
+    }
+    geom = layout_arch.layout_architecture(d)  # must not raise
+    assert {n["id"] for n in geom["nodes"]} == {"n"}
+
+
+def test_direction_mixed_case_tb_accepted():
+    """direction="Tb" (and any other casing variant) is also accepted."""
+    d = {
+        "type": "architecture", "style": "enterprise", "title": "T", "direction": "Tb",
+        "layers": [{"id": "L0", "label": "x", "nodes": ["n"]}],
+        "nodes": [{"id": "n", "label": "Node", "kind": "service"}],
+        "edges": [],
+    }
+    geom = layout_arch.layout_architecture(d)
+    assert {n["id"] for n in geom["nodes"]} == {"n"}
+
+
+def test_direction_uppercase_lr_still_raises():
+    """Even after case-insensitivity, 'LR' is not tb, so it must still raise."""
+    bad = _diagram()
+    bad["direction"] = "LR"
+    with pytest.raises(layout.LayoutError, match="tb"):
+        layout_arch.layout_architecture(bad)
+
+
 def test_non_tb_direction_raises():
     bad = _diagram()
     bad["direction"] = "lr"

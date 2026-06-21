@@ -26,10 +26,10 @@ These may appear on edges/relationships in any type unless noted:
 
 | Hint | Applies to | Effect |
 |------|-----------|--------|
-| `direction` | architecture (top-level), flowchart (top-level) | `"TB"` (top-bottom) or `"LR"` (left-right). Defaults per style. |
+| `direction` | architecture (top-level), flowchart (top-level) | **Case-insensitive.** `"TB"` = top-bottom, `"LR"` = left-right. **v1 implements `tb` only** — `lr` is planned and raises `LayoutError` today. Defaults to `tb`. |
 | `label` | any edge | Text rendered on the connector. |
-| `dashed` | any edge (bool) | Renders a dashed connector (e.g. async / optional flows). |
-| `flow` | architecture edge | `"data"`, `"control"`, `"sync"` — drives connector color/style. |
+| `dashed` | sequence message (bool) | On sequence messages this renders a dashed connector (return/response, or async). For **other diagram types** this hint is **not honored** — dashed lines there are driven by the edge's `flow` field: `flow: "async"` or `flow: "memory_write"` render dashed (architecture/flowchart/er/state all derive dash from `flow`). |
+| `flow` | architecture edge, flowchart edge | `"data"`, `"control"`, `"sync"`, `"async"`, `"memory_write"` — drives connector color/style. `"async"` and `"memory_write"` render dashed. |
 | `card` | er relationship | `"1:1"`, `"1:N"`, `"N:M"` — rendered as crow's-foot ends. |
 | `guard` | state transition | Condition text (e.g. `[authenticated]`) rendered on the arrow. |
 | `pk` | er attribute (bool) | Marks primary key (underline + key glyph). |
@@ -101,7 +101,7 @@ cross layers.
     {"source": "web",  "target": "gw",    "flow": "data"},
     {"source": "app",  "target": "gw",    "flow": "data"},
     {"source": "gw",   "target": "order", "flow": "data"},
-    {"source": "order","target": "pay",   "flow": "sync", "dashed": true},
+    {"source": "order","target": "pay",   "flow": "async"},
     {"source": "order","target": "db",    "flow": "data"},
     {"source": "order","target": "cache", "flow": "data"}
   ]

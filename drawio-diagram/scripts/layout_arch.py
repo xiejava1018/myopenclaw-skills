@@ -5,7 +5,9 @@ NODE_H = layout.NODE_H
 
 
 def layout_architecture(d: dict) -> dict:
-    direction = d.get("direction", "tb")
+    # Case-insensitive: the doc shows "TB"/"LR" in examples, so accept any
+    # casing of "tb". v1 implements tb only; any non-tb value still raises.
+    direction = d.get("direction", "tb").lower()
     if direction != "tb":
         # v1 supports tb only; fail loud rather than guess.
         raise layout.LayoutError("architecture v1 supports direction='tb' only")
