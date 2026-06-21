@@ -201,3 +201,37 @@ def test_render_final_pseudostate_is_bullseye_two_cells():
     def _w(c):
         return int(c.find("mxGeometry").get("width"))
     assert _w(inner[0]) < _w(outer[0])
+
+
+# --- cloud icon rendering ---
+
+def test_render_cloud_node_uses_provider_stencil():
+    geom = _geom()
+    geom["nodes"] = [{
+        "id": "s3", "label": "Amazon S3", "kind": "external",
+        "provider": "aws", "service": "s3",
+        "x": 60, "y": 60, "width": 80, "height": 80,
+    }]
+    xml = render.render(geom)
+    assert "mxgraph.aws4.s3" in xml
+
+
+def test_render_cloud_node_azure_namespace():
+    geom = _geom()
+    geom["nodes"] = [{
+        "id": "f", "label": "Func", "kind": "service",
+        "provider": "azure", "service": "function_apps",
+        "x": 60, "y": 60, "width": 80, "height": 80,
+    }]
+    xml = render.render(geom)
+    assert "mxgraph.azure.function_apps" in xml
+
+
+def test_render_node_without_provider_uses_kind_shape():
+    # a plain database node must still use the cylinder shape, not a cloud glyph
+    geom = _geom()
+    geom["nodes"] = [{"id": "d", "label": "DB", "kind": "database",
+                      "x": 60, "y": 60, "width": 140, "height": 80}]
+    xml = render.render(geom)
+    assert "shape=cylinder3" in xml
+    assert "mxgraph." not in xml

@@ -230,3 +230,61 @@ def test_node_in_two_layers_rejected():
     }
     with pytest.raises(SchemaError, match="duplicate|layer"):
         schema.validate(bad)
+
+
+# --- cloud icon fields (provider/service) ---
+
+ARCH_CLOUD = {
+    "type": "architecture", "style": "enterprise", "title": "Cloud",
+    "layers": [{"id": "L0", "label": "Edge", "nodes": ["cdn"]},
+               {"id": "L1", "label": "Data", "nodes": ["db"]}],
+    "nodes": [{"id": "cdn", "label": "CloudFront", "kind": "external",
+               "provider": "aws", "service": "cloudfront"},
+              {"id": "db", "label": "DynamoDB", "kind": "database",
+               "provider": "aws", "service": "dynamodb"}],
+    "edges": [{"source": "cdn", "target": "db"}],
+}
+
+
+def test_arch_node_cloud_fields_accepted():
+    # provider/service are optional and must pass validation untouched.
+    schema.validate(ARCH_CLOUD)  # no raise
+
+
+def test_arch_node_provider_must_be_known():
+    bad = {
+        "type": "architecture", "style": "enterprise", "title": "X",
+        "layers": [{"id": "L0", "nodes": ["n"]}],
+        "nodes": [{"id": "n", "label": "N", "kind": "service",
+                   "provider": "ibm", "service": "cos"}],
+        "edges": [],
+    }
+    with pytest.raises(SchemaError, match="provider"):
+        schema.validate(bad)
+
+
+def test_arch_node_service_requires_provider():
+    bad = {
+        "type": "architecture", "style": "enterprise", "title": "X",
+        "layers": [{"id": "L0", "nodes": ["n"]}],
+        "nodes": [{"id": "n", "label": "N", "kind": "service",
+                   "service": "s3"}],
+        "edges": [],
+    }
+    with pytest.raises(SchemaError, match="service"):
+        schema.validate(bad)
+
+
+def test_arch_node_without_cloud_fields_still_ok():
+    # Backward-compat: nodes without provider/service are unaffected.
+    schema.validate(ARCH_OK)
+
+
+def test_flowchart_node_cloud_fields_accepted():
+    d = {
+        "type": "flowchart", "style": "enterprise", "title": "F",
+        "nodes": [{"id": "n", "label": "Lambda", "kind": "process",
+                   "provider": "aws", "service": "lambda"}],
+        "edges": [],
+    }
+    schema.validate(d)

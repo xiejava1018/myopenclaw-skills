@@ -42,11 +42,17 @@ def layout_architecture(d: dict) -> dict:
         layer_left = x_cursor
         for nid, nd, w, h in sized:
             nx, ny = layout.snap(x_cursor), layout.snap(y_cursor)
-            geom["nodes"].append({
+            node = {
                 "id": nid, "label": nd["label"],
                 "kind": nd.get("kind", "service"),
                 "x": nx, "y": ny, "width": w, "height": band_h,
-            })
+            }
+            # Forward optional cloud-icon fields to the renderer.
+            if nd.get("provider"):
+                node["provider"] = nd["provider"]
+            if nd.get("service"):
+                node["service"] = nd["service"]
+            geom["nodes"].append(node)
             centers[nid] = (nx + w // 2, nx, ny, w, band_h)
             x_cursor += w + layout.GUTTER_X
         layer_right = x_cursor - layout.GUTTER_X

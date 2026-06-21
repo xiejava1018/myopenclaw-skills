@@ -45,11 +45,16 @@ def layout_flowchart(d: dict) -> dict:
             w = tw if tw % layout.SNAP == 0 else tw + (layout.SNAP - tw % layout.SNAP)
             h = layout.snap(NODE_H)
             x = layout.snap(x_cursor)
-            geom["nodes"].append({
+            node = {
                 "id": nid, "label": nd["label"],
                 "kind": nd.get("kind", "process"),
                 "x": x, "y": y, "width": w, "height": h,
-            })
+            }
+            if nd.get("provider"):
+                node["provider"] = nd["provider"]
+            if nd.get("service"):
+                node["service"] = nd["service"]
+            geom["nodes"].append(node)
             centers[nid] = (x + w // 2, x, y, w, h)
             x_cursor += w + layout.GUTTER_X
             max_right = max(max_right, x + w)

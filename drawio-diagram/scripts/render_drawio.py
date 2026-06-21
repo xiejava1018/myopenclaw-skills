@@ -42,10 +42,17 @@ def render(geom: dict) -> str:
 
 
 def _add_node(root, n, style_name):
-    shape = shapes.shape_for(n.get("kind"))
+    provider = n.get("provider")
+    service = n.get("service")
+    if provider and service:
+        # Cloud service glyph takes precedence over kind-based shape.
+        style_str = shapes.cloud_icon(provider, service)
+    else:
+        shape = shapes.shape_for(n.get("kind"))
+        style_str = styles.cell_style(n.get("kind", "default"), style_name, shape)
     cell = ET.SubElement(root, "mxCell", {
         "id": n["id"], "value": n.get("label", ""),
-        "style": styles.cell_style(n.get("kind", "default"), style_name, shape),
+        "style": style_str,
         "vertex": "1", "parent": _ROOT_PARENT_ID,
     })
     ET.SubElement(cell, "mxGeometry", {

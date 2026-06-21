@@ -3,6 +3,7 @@ from typing import Any
 
 VALID_TYPES = {"architecture", "flowchart", "sequence", "er", "state"}
 VALID_STYLES = {"enterprise", "flat", "notion", "claude", "openai"}
+VALID_PROVIDERS = {"aws", "azure", "gcp"}
 
 # The layout engine owns all geometry. Claude must never hand in coordinates.
 FORBIDDEN_COORD_KEYS = {"x", "y", "width", "height", "geometry", "position"}
@@ -78,6 +79,23 @@ def validate(d: Any) -> None:
         _validate_state(d)
 
 
+def _validate_node_cloud_fields(n: dict):
+    """provider/service are optional. If present, provider must be a known
+    cloud, and service requires provider (no orphan service glyphs)."""
+    provider = n.get("provider")
+    service = n.get("service")
+    if service is not None and provider is None:
+        raise SchemaError(
+            f"node {n.get('id')!r}: 'service' requires 'provider'"
+        )
+    if provider is not None:
+        if not isinstance(provider, str) or provider not in VALID_PROVIDERS:
+            raise SchemaError(
+                f"node {n.get('id')!r}: unknown provider {provider!r}; "
+                f"expected one of {sorted(VALID_PROVIDERS)}"
+            )
+
+
 def _validate_nodes(d):
     _require_list(d, "nodes", "node")
     known = set()
@@ -85,6 +103,7 @@ def _validate_nodes(d):
         _require(n, "id", "node")
         _require(n, "label", "node")
         _reject_coordinates(n, "node")
+        _validate_node_cloud_fields(n)
         if n["id"] in known:
             raise SchemaError(f"duplicate node id {n['id']!r}")
         known.add(n["id"])

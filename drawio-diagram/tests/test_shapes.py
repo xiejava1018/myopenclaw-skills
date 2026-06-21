@@ -29,3 +29,38 @@ def test_shape_for_returns_expected_shape_for_each_kind():
     }
     for kind, shape in expected.items():
         assert shapes.shape_for(kind) == shape
+
+
+# --- cloud_icon() ---
+
+def test_cloud_icon_aws_s3_returns_aws4_stencil():
+    s = shapes.cloud_icon("aws", "s3")
+    assert isinstance(s, str)
+    assert "mxgraph.aws4." in s
+    assert "html=1" in s
+
+
+def test_cloud_icon_azure_uses_azure_namespace():
+    s = shapes.cloud_icon("azure", "function_apps")
+    assert "mxgraph.azure." in s
+
+
+def test_cloud_icon_gcp_uses_gcp_namespace():
+    s = shapes.cloud_icon("gcp", "bigquery")
+    assert "mxgraph.gcp." in s
+
+
+def test_cloud_icon_known_catalog_entries_render_stencils():
+    # spot-check a few curated entries from each provider
+    for prov, svc in [("aws", "lambda"), ("aws", "dynamodb"),
+                      ("gcp", "cloud_storage"), ("azure", "sql_database")]:
+        s = shapes.cloud_icon(prov, svc)
+        assert "html=1" in s
+        # the service name appears in the shape string
+        assert svc in s
+
+
+def test_cloud_icon_provider_prefix_in_shape():
+    # the returned string embeds the service name so a render test can assert
+    s = shapes.cloud_icon("aws", "s3")
+    assert "s3" in s
