@@ -23,7 +23,7 @@ def drawio_version() -> str | None:
         )
         m = re.search(r"(\d+\.\d+\.\d+)", out.stdout)
         return m.group(1) if m else None
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         return None
 
 

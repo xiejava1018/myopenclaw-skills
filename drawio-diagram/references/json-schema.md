@@ -237,11 +237,14 @@ defined state.
 | Check | Failure message contains |
 |-------|--------------------------|
 | Missing `type` | `missing required field 'type'` |
-| Bogus `type` | `unknown type` |
-| Bogus `style` | `invalid style` |
+| Bogus / non-string `type` | `unknown type` |
+| Bogus / non-string `style` | `invalid style` |
 | Missing required field | `missing required field` |
+| Required field not a list | `must be a list` |
 | Edge / participant / relationship / layer ref to undefined id | `unknown node reference` |
-| `initial` not a defined state | `initial` |
+| Duplicate id within a collection | `duplicate` |
+| Coordinate field present | `coordinate field` |
+| `initial` not a defined state (or not a string) | `initial` |
 
 A rejection message that does not match the table is a schema bug — fix
 `schema.py`. The JSON author is right about intent, wrong only about spelling.
