@@ -1,0 +1,110 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="订单处理流程" id="d0">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="480" pageHeight="1180" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="start" value="开始" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="receive" value="接收订单" style="shape=parallelogram;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="stock" value="库存充足?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="notify" value="通知缺货" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="640" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="payment" value="处理付款" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="640" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="refund" value="退款处理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="840" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="ship" value="发货" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="840" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="end" value="结束" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1040" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_start_receive_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="start" target="receive">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="130" y="140" as="sourcePoint" />
+            <mxPoint x="130" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_receive_stock_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="receive" target="stock">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="130" y="340" as="sourcePoint" />
+            <mxPoint x="130" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_stock_payment_2" value="是" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="stock" target="payment">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="590" />
+              <mxPoint x="350" y="590" />
+            </Array>
+            <mxPoint x="130" y="540" as="sourcePoint" />
+            <mxPoint x="350" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_payment_ship_3" value="成功" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="payment" target="ship">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="350" y="720" as="sourcePoint" />
+            <mxPoint x="350" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_payment_refund_4" value="失败" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="payment" target="refund">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="780" />
+              <mxPoint x="130" y="780" />
+            </Array>
+            <mxPoint x="350" y="720" as="sourcePoint" />
+            <mxPoint x="130" y="840" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_ship_end_5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="ship" target="end">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="980" />
+              <mxPoint x="130" y="980" />
+            </Array>
+            <mxPoint x="350" y="920" as="sourcePoint" />
+            <mxPoint x="130" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_refund_end_6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="refund" target="end">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="130" y="920" as="sourcePoint" />
+            <mxPoint x="130" y="1040" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_stock_notify_7" value="否" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="stock" target="notify">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="130" y="540" as="sourcePoint" />
+            <mxPoint x="130" y="640" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_notify_end_8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="notify" target="end">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="780" />
+              <mxPoint x="440" y="780" />
+              <mxPoint x="440" y="1080" />
+            </Array>
+            <mxPoint x="200" y="680" as="sourcePoint" />
+            <mxPoint x="200" y="1080" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

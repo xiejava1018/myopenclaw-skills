@@ -1,0 +1,26 @@
+{
+  "type": "flowchart",
+  "style": "enterprise",
+  "title": "订单处理流程",
+  "nodes": [
+    {"id": "start", "label": "开始", "kind": "terminal"},
+    {"id": "receive", "label": "接收订单", "kind": "io"},
+    {"id": "stock", "label": "库存充足?", "kind": "decision"},
+    {"id": "payment", "label": "处理付款", "kind": "process"},
+    {"id": "ship", "label": "发货", "kind": "process"},
+    {"id": "notify", "label": "通知缺货", "kind": "process"},
+    {"id": "refund", "label": "退款处理", "kind": "process"},
+    {"id": "end", "label": "结束", "kind": "terminal"}
+  ],
+  "edges": [
+    {"source": "start", "target": "receive", "label": ""},
+    {"source": "receive", "target": "stock", "label": ""},
+    {"source": "stock", "target": "payment", "label": "是"},
+    {"source": "payment", "target": "ship", "label": "成功"},
+    {"source": "payment", "target": "refund", "label": "失败"},
+    {"source": "ship", "target": "end", "label": ""},
+    {"source": "refund", "target": "end", "label": ""},
+    {"source": "stock", "target": "notify", "label": "否"},
+    {"source": "notify", "target": "end", "label": ""}
+  ]
+}
