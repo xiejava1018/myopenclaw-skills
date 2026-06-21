@@ -22,7 +22,11 @@ def layout_architecture(d: dict) -> dict:
         sized = []
         for nid in lids:
             nd = node_map[nid]
-            w = layout.snap(layout.text_width(nd["label"]))
+            # Snap UP to the next grid line so the rendered box is always wide
+            # enough to hold the label (text_width rounds down can produce a
+            # box 1 snap smaller than the label — caught by assert_width_from_text).
+            tw = layout.text_width(nd["label"])
+            w = tw if tw % layout.SNAP == 0 else tw + (layout.SNAP - tw % layout.SNAP)
             h = layout.snap(NODE_H)
             sized.append((nid, nd, w, h))
         # An empty layer is a no-op: no nodes placed, no container emitted,
