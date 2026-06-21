@@ -39,8 +39,7 @@ These may appear on edges/relationships in any type unless noted:
 
 Every node/participant/entity/state may carry a `kind` string. `kind` maps to a
 draw.io **shape stencil** (and optional icon). The full `kind` → shape catalog
-lives in [`drawio-shapes.md`](./drawio-shapes.md) (added in a later phase).
-Until that file exists, use these provisional values:
+lives in [`drawio-shapes.md`](./drawio-shapes.md).
 
 - **architecture nodes**: `client`, `api`, `service`, `database`, `queue`, `cache`, `storage`, `external`
 - **flowchart nodes**: `terminal` (start/end), `process`, `decision`, `io`, `subprocess`
@@ -49,8 +48,24 @@ Until that file exists, use these provisional values:
 - **state**: (no `kind`; shape is always a rounded state node)
 
 `kind` is **optional** in the schema — omitting it yields a sensible default
-shape per type. Unknown `kind` values are not rejected in Phase 0; they will be
-validated once `drawio-shapes.md` lands.
+shape per type.
+
+**Cloud icons (optional, architecture/flowchart nodes only).** To render a
+real AWS/Azure/GCP glyph instead of the generic shape, add `provider` + `service`:
+
+```json
+{"id": "store", "label": "Product Images", "kind": "database",
+ "provider": "aws", "service": "s3"}
+```
+
+- `provider` must be one of `aws`, `azure`, `gcp`.
+- `service` requires `provider` (a service glyph without a provider is rejected).
+- See [`drawio-shapes.md`](./drawio-shapes.md) for the full service catalog.
+
+**Auto-legend.** When a diagram uses 2+ distinct edge `flow` values, the
+renderer emits a small "Flows" legend box (top-right) so the colors read
+self-documenting. No input needed — it is purely automatic. Single-flow or
+unlabeled diagrams get no legend.
 
 ---
 
