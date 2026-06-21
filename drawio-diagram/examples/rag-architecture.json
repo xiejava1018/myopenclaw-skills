@@ -1,0 +1,33 @@
+{
+  "type": "architecture",
+  "style": "enterprise",
+  "title": "RAG System Architecture",
+  "direction": "tb",
+  "layers": [
+    {"id": "L0", "label": "客户端",  "nodes": ["web", "mobile"]},
+    {"id": "L1", "label": "API 网关", "nodes": ["gateway"]},
+    {"id": "L2", "label": "服务层",   "nodes": ["auth", "rag"]},
+    {"id": "L3", "label": "AI / 数据", "nodes": ["llm", "vectordb", "cache", "docstore"]}
+  ],
+  "nodes": [
+    {"id": "web",      "label": "Web App",      "kind": "client"},
+    {"id": "mobile",   "label": "Mobile App",   "kind": "client"},
+    {"id": "gateway",  "label": "API Gateway",  "kind": "api"},
+    {"id": "auth",     "label": "Auth Service", "kind": "service"},
+    {"id": "rag",      "label": "RAG Orchestrator", "kind": "service"},
+    {"id": "llm",      "label": "LLM",          "kind": "llm"},
+    {"id": "vectordb", "label": "Vector DB (pgvector)", "kind": "vectorstore"},
+    {"id": "cache",    "label": "Cache (Redis)", "kind": "cache"},
+    {"id": "docstore", "label": "Document Store", "kind": "database"}
+  ],
+  "edges": [
+    {"source": "web",      "target": "gateway", "flow": "data"},
+    {"source": "mobile",   "target": "gateway", "flow": "data"},
+    {"source": "gateway",  "target": "auth",    "flow": "control"},
+    {"source": "gateway",  "target": "rag",     "flow": "data"},
+    {"source": "rag",      "target": "llm",     "flow": "data"},
+    {"source": "rag",      "target": "vectordb","flow": "data"},
+    {"source": "rag",      "target": "cache",   "flow": "data"},
+    {"source": "rag",      "target": "docstore","flow": "data"}
+  ]
+}

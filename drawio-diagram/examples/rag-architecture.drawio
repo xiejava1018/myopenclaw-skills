@@ -1,0 +1,123 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="RAG System Architecture" id="d0">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="800" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="L0" value="客户端" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#404040;dashed=1;dashPattern=8 4;verticalAlign=top;fontColor=#1a1a1a;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="380" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="L1" value="API 网关" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#404040;dashed=1;dashPattern=8 4;verticalAlign=top;fontColor=#1a1a1a;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="160" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="L2" value="服务层" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#404040;dashed=1;dashPattern=8 4;verticalAlign=top;fontColor=#1a1a1a;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="400" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="L3" value="AI / 数据" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#404040;dashed=1;dashPattern=8 4;verticalAlign=top;fontColor=#1a1a1a;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="640" width="860" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="web" value="Web App" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="mobile" value="Mobile App" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="60" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway" value="API Gateway" style="shape=hexagon;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="260" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="auth" value="Auth Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="460" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="rag" value="RAG Orchestrator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="460" width="160" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="llm" value="LLM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="660" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="vectordb" value="Vector DB (pgvector)" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="660" width="180" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="cache" value="Cache (Redis)" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="660" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="docstore" value="Document Store" style="shape=cylinder3;size=15;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#404040;fontColor=#1a1a1a;fontSize=14;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="760" y="660" width="140" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_web_gateway_0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="web" target="gateway">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="130" y="140" as="sourcePoint" />
+            <mxPoint x="130" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_mobile_gateway_1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="mobile" target="gateway">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="350" y="200" />
+              <mxPoint x="130" y="200" />
+            </Array>
+            <mxPoint x="350" y="140" as="sourcePoint" />
+            <mxPoint x="130" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_gateway_auth_2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#ea580c;strokeWidth=1.5;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="gateway" target="auth">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points" />
+            <mxPoint x="130" y="340" as="sourcePoint" />
+            <mxPoint x="130" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_gateway_rag_3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="gateway" target="rag">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="400" />
+              <mxPoint x="360" y="400" />
+            </Array>
+            <mxPoint x="130" y="340" as="sourcePoint" />
+            <mxPoint x="360" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_rag_llm_4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="rag" target="llm">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="600" />
+              <mxPoint x="130" y="600" />
+            </Array>
+            <mxPoint x="360" y="540" as="sourcePoint" />
+            <mxPoint x="130" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_rag_vectordb_5" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="rag" target="vectordb">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="600" />
+              <mxPoint x="370" y="600" />
+            </Array>
+            <mxPoint x="360" y="540" as="sourcePoint" />
+            <mxPoint x="370" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_rag_cache_6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="rag" target="cache">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="600" />
+              <mxPoint x="610" y="600" />
+            </Array>
+            <mxPoint x="360" y="540" as="sourcePoint" />
+            <mxPoint x="610" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_rag_docstore_7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;strokeColor=#2563eb;strokeWidth=2;dashed=0;fontColor=#1a1a1a;fontSize=12;" edge="1" parent="1" source="rag" target="docstore">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="600" />
+              <mxPoint x="830" y="600" />
+            </Array>
+            <mxPoint x="360" y="540" as="sourcePoint" />
+            <mxPoint x="830" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
